@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Titles Cache Mobile Friendly
 // @namespace    https://khamsat.com/
-// @version      1.1
+// @version      1.2
 // @description  اظهار مسمى المشتري - نسخة محسنة للجوال
 // @author       Your Name
 // @match        https://khamsat.com/community/requests
@@ -65,13 +65,17 @@
         let t = await s.text(),
           p = new DOMParser().parseFromString(t, 'text/html'),
           d = p.querySelector('ul.details-list.pe-0 li');
+        
         if (d) {
+          // Extract the actual title text properly
           let T = d.textContent.trim();
+          // Store the title as a string, not an object
           C[u] = T;
           ad(l, T);
           localStorage.setItem('titlesCache', JSON.stringify(C));
         }
       } catch (e) {
+        console.error('Error fetching title:', e);
         Q.push(() => pr(l, u));
       } finally {
         A--;
@@ -80,7 +84,8 @@
     }
 
     function ad(l, t) {
-      if (!l.querySelector('.user-title')) {
+      // Don't add if already exists or if title is not valid
+      if (!l.querySelector('.user-title') && t && typeof t === 'string' && t !== '[object Object]') {
         let s = document.createElement('span');
         
         // Different style and placement based on device
@@ -110,10 +115,29 @@
     function uT() {
       document.querySelectorAll('td.details-td ul.details-list li a.user, .meta--user a.user').forEach(a => {
         let h = `https://khamsat.com${a.getAttribute('href')}`;
-        C[h] ? ad(a, C[h]) : Q.push(() => pr(a, h));
+        
+        // Check if cached title is valid before using it
+        if (C[h] && typeof C[h] === 'string' && C[h] !== '[object Object]') {
+          ad(a, C[h]);
+        } else {
+          // If the cached title is invalid, remove it and fetch again
+          if (C[h]) {
+            delete C[h];
+            localStorage.setItem('titlesCache', JSON.stringify(C));
+          }
+          Q.push(() => pr(a, h));
+        }
       });
       pq();
     }
+
+    // Clear invalid entries from cache on initial load
+    for (const key in C) {
+      if (typeof C[key] !== 'string' || C[key] === '[object Object]') {
+        delete C[key];
+      }
+    }
+    localStorage.setItem('titlesCache', JSON.stringify(C));
 
     // Initial run
     window.addEventListener('load', uT);
