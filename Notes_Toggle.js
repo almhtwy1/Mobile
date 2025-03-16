@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Khamsat Notes Toggle with Auto-Save Mobile Friendly
 // @namespace    http://tampermonkey.net/
-// @version      2.3
+// @version      2.5
 // @description  عرض جزء الملاحظات مع الحفظ التلقائي وتجربة محسنة للجوال
 // @author       Your Name
 // @match        https://khamsat.com/community/requests/*
@@ -144,6 +144,12 @@
         transition: all 0.3s ease;
       }
       
+      /* Scroll behavior for FAB */
+      .mobile-notes-fab.hidden {
+        transform: translateY(100px);
+        opacity: 0;
+      }
+      
       /* Animations */
       @keyframes fadeIn {
         from { opacity: 0; }
@@ -188,8 +194,8 @@
         /* Floating action button style for mobile */
         .mobile-notes-fab {
           position: fixed;
-          bottom: 20px;
-          right: 20px;
+          bottom: 80px; /* increased to stay above bottom nav */
+          left: 20px; /* changed from right to left */
           width: 50px;
           height: 50px;
           border-radius: 50%;
@@ -199,7 +205,7 @@
           align-items: center;
           justify-content: center;
           box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-          z-index: 1000;
+          z-index: 1010; /* increased to stay above other elements */
           transition: all 0.3s ease;
           animation: fadeIn 0.5s ease;
         }
@@ -224,7 +230,7 @@
           right: 0;
           bottom: 0;
           background-color: rgba(0,0,0,0.5);
-          z-index: 1001;
+          z-index: 1011; /* higher than FAB */
           display: flex;
           align-items: center;
           justify-content: center;
@@ -278,6 +284,14 @@
 
   // Create mobile FAB (Floating Action Button) for notes
   const createMobileFab = (hasNotes) => {
+    // Check if we're on the requests list page and not on a specific request page
+    const isRequestListPage = window.location.pathname === '/community/requests';
+    
+    // Don't create FAB on the requests list page
+    if (isRequestListPage) {
+      return null;
+    }
+    
     // Remove existing FAB if any
     const existingFab = document.querySelector('.mobile-notes-fab');
     if (existingFab) {
@@ -296,6 +310,26 @@
     
     // Add to body
     document.body.appendChild(fab);
+    
+    // Set up scroll behavior
+    let lastScrollPosition = window.scrollY;
+    const handleScroll = () => {
+      const currentScrollPosition = window.scrollY;
+      
+      // Show when scrolling down, hide when scrolling up
+      if (currentScrollPosition > lastScrollPosition) {
+        // Scrolling down - show the button
+        fab.classList.remove('hidden');
+      } else {
+        // Scrolling up - hide the button
+        fab.classList.add('hidden');
+      }
+      
+      lastScrollPosition = currentScrollPosition;
+    };
+    
+    // Add scroll listener
+    window.addEventListener('scroll', handleScroll);
     
     return fab;
   };
@@ -520,12 +554,8 @@
             const iconContainer = document.createElement('div');
             iconContainer.className = 'note-icon-container';
             
-            // Position based on device
-            if (isMobile()) {
-              iconContainer.style.cssText = 'position: absolute; right: 5px; top: 50%; transform: translateY(-50%);';
-            } else {
-              iconContainer.style.cssText = 'position: absolute; left: 5px; top: 50%; transform: translateY(-50%);';
-            }
+            // Position at the far left in any view (RTL-friendly)
+            iconContainer.style.cssText = 'position: absolute; left: 5px; top: 50%; transform: translateY(-50%);';
             
             // Create note icon
             const noteIcon = document.createElement('div');
@@ -536,16 +566,10 @@
             const tooltip = document.createElement('div');
             tooltip.className = 'note-tooltip';
             
-            // Position based on device
-            if (isMobile()) {
-              tooltip.style.right = '30px';
-              tooltip.style.top = '50%';
-              tooltip.style.transform = 'translateY(-50%)';
-            } else {
-              tooltip.style.left = '30px';
-              tooltip.style.top = '50%';
-              tooltip.style.transform = 'translateY(-50%)';
-            }
+            // Position tooltip
+            tooltip.style.left = '30px';
+            tooltip.style.top = '50%';
+            tooltip.style.transform = 'translateY(-50%)';
             
             tooltip.textContent = note;
             
@@ -588,6 +612,18 @@
     });
   };
 
+  // Check if bottom navigation is present and adjust FAB position if needed
+  const adjustFabPositionIfNeeded = () => {
+    const bottomNav = document.querySelector('.hsoub-tabs-list');
+    const fab = document.querySelector('.mobile-notes-fab');
+    
+    if (bottomNav && fab) {
+      // Ensure FAB is above the bottom navigation
+      const bottomNavHeight = bottomNav.offsetHeight;
+      fab.style.bottom = (bottomNavHeight + 15) + 'px';
+    }
+  };
+
   // Main init function
   const initNoteFeature = async () => {
     try {
@@ -614,6 +650,14 @@
         
         // Create FAB
         createMobileFab(hasNotes);
+        
+        // Adjust position based on bottom navigation
+        setTimeout(adjustFabPositionIfNeeded, 500);
+        
+        // Re-adjust on scroll to handle possible dynamic elements
+        window.addEventListener('scroll', () => {
+          adjustFabPositionIfNeeded();
+        });
       } else {
         // Desktop version
         initDesktopNotes();
@@ -655,6 +699,9 @@
           
           // Create FAB
           createMobileFab(hasNotes);
+          
+          // Adjust position
+          setTimeout(adjustFabPositionIfNeeded, 500);
         }
       });
 
