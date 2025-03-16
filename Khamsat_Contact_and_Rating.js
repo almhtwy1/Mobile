@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Khamsat Contact & Rating Mobile Friendly
 // @namespace    https://khamsat.com/
-// @version      1.3
+// @version      1.4
 // @description  إضافة زر "اتصل بي" وعرض التقييمات للمعلقين في خمسات - نسخة محسنة للجوال
 // @author       Your Name
 // @match        https://khamsat.com/community/requests/*
@@ -103,6 +103,7 @@
                     flex-direction: column;
                     align-items: flex-start;
                     margin-top: 5px;
+                    width: 100%;
                 }
                 
                 .meta--user-mobile-row {
@@ -118,10 +119,12 @@
                     padding: 3px 10px;
                     font-size: 12px;
                     margin-bottom: 4px;
+                    margin-left: auto; /* Push to the right in RTL layout */
                 }
                 
                 .rating-container {
                     margin-bottom: 4px;
+                    margin-right: auto; /* Keep on the left in RTL layout */
                 }
                 
                 /* Fix for overlapping elements in mobile view */
@@ -132,7 +135,13 @@
                 
                 /* Ensure button is at the far end on mobile */
                 .button-container-mobile-right {
+                    margin-right: 0;
                     margin-left: auto;
+                }
+                
+                /* Add space between items */
+                .meta--user-mobile-row > * {
+                    margin: 2px 5px;
                 }
             }
             
@@ -205,9 +214,12 @@
                         const row = document.createElement('div');
                         row.className = 'meta--user-mobile-row';
                         
-                        row.appendChild(ratingCont);
+                        // For RTL layout - put rating on the right and button on the left
+                        const ratingWrapper = document.createElement('div');
+                        ratingWrapper.appendChild(ratingCont);
+                        row.appendChild(ratingWrapper);
                         
-                        // Create container for button on the right side
+                        // Create container for button on the left side (in RTL layout)
                         const btnContainer = document.createElement('div');
                         btnContainer.className = 'button-container-mobile-right';
                         btnContainer.appendChild(btn);
