@@ -22,6 +22,23 @@
     const addStyles = () => {
         const style = document.createElement('style');
         style.textContent = `
+            /* Icon for toggle hint */
+            .comment-item .meta--user a.user:after,
+            .discussion-item.comment .meta--user a.user:after {
+                content: "\\f005";  /* Star icon */
+                font-family: "Font Awesome 6 Free";
+                font-size: 10px;
+                margin-right: 4px;
+                color: #ccc;
+                opacity: 0.5;
+                transition: all 0.3s ease;
+            }
+            
+            .comment-item:hover .meta--user a.user:after,
+            .discussion-item.comment:hover .meta--user a.user:after {
+                opacity: 1;
+                color: #FFC107;
+            }
             /* Base styles for both mobile and desktop */
             .custom-contact-btn {
                 padding: 4px 12px;
@@ -71,6 +88,14 @@
                 font-weight: 600;
             }
             
+            /* Button container for the far left position */
+            .button-container-left {
+                display: flex;
+                justify-content: flex-end;
+                flex-grow: 1;
+                padding-left: 10px;
+            }
+            
             /* Mobile-specific styles */
             @media screen and (max-width: 767px) {
                 .meta--user-mobile-wrapper {
@@ -93,13 +118,10 @@
                     padding: 3px 10px;
                     font-size: 12px;
                     margin-bottom: 4px;
-                    order: 2; /* Force to appear second/left in RTL */
                 }
                 
                 .rating-container {
                     margin-bottom: 4px;
-                    margin-right: 0;
-                    order: 1; /* Force to appear first/right in RTL */
                 }
                 
                 /* Fix for overlapping elements in mobile view */
@@ -107,27 +129,11 @@
                 .comment-item .meta {
                     flex-wrap: wrap;
                 }
-            }
-            
-            /* Positioning for desktop */
-            .meta--user {
-                display: flex;
-                justify-content: space-between;
-                width: 100%;
-                align-items: center;
-            }
-            
-            /* Fixed positioning to ensure left/right alignment */
-            .meta--user a.user {
-                order: 1; /* Username first */
-            }
-            
-            .rating-container {
-                order: 2; /* Rating second, right after username */
-            }
-            
-            .custom-contact-btn.desktop-position {
-                order: 3; /* Contact button last (far left in RTL) */
+                
+                /* Ensure button is at the far end on mobile */
+                .button-container-mobile-right {
+                    margin-left: auto;
+                }
             }
             
             /* Loading animation */
@@ -195,39 +201,72 @@
                         wrapper = document.createElement('div');
                         wrapper.className = 'meta--user-mobile-wrapper';
                         
-                        // Create a row for the rating and contact button with space-between
+                        // Create a row for the rating and contact button
                         const row = document.createElement('div');
                         row.className = 'meta--user-mobile-row';
                         
-                        // Add rating to the right side (RTL: will appear on right)
                         row.appendChild(ratingCont);
                         
-                        // Add button to the left side (RTL: will appear on left)
-                        row.appendChild(btn);
+                        // Create container for button on the right side
+                        const btnContainer = document.createElement('div');
+                        btnContainer.className = 'button-container-mobile-right';
+                        btnContainer.appendChild(btn);
+                        row.appendChild(btnContainer);
                         
                         wrapper.appendChild(row);
                         userMeta.appendChild(wrapper);
                     }
                 } else {
-                    // Restructure the userMeta to be flex with space-between
-                    userMeta.style.display = 'flex';
-                    userMeta.style.justifyContent = 'space-between';
-                    userMeta.style.width = '100%';
-                    userMeta.style.alignItems = 'center';
-                    
-                    // Get the username element
-                    const usernameEl = userMeta.querySelector('a.user');
-                    if (usernameEl) {
-                        // Move the username to the start
-                        userMeta.insertBefore(usernameEl, userMeta.firstChild);
-                    }
-                    
-                    // Add rating after username (will be in the middle)
+                    // For desktop: Add rating to user meta
                     userMeta.appendChild(ratingCont);
                     
-                    // Add contact button at the end (will be on the left in RTL layout)
-                    btn.classList.add('desktop-position');
-                    userMeta.appendChild(btn);
+                    // Find the target container for the contact button (far left)
+                    const hiddenSmallDiv = comment.querySelector('.col-lg-7.col-md-6.u-hidden\\@small');
+                    
+                    if (hiddenSmallDiv) {
+                        // Create a container for the button at the far left
+                        const btnContainer = document.createElement('div');
+                        btnContainer.className = 'button-container-left';
+                        btnContainer.appendChild(btn);
+                        
+                        hiddenSmallDiv.appendChild(btnContainer);
+                    } else {
+                        // Fallback: find another suitable container
+                        const metaContainer = comment.querySelector('.meta');
+                        
+                        if (metaContainer) {
+                            // Check if there's a flex container already
+                            let flexContainer = metaContainer.querySelector('.d-flex.justify-content-between');
+                            
+                            if (!flexContainer) {
+                                // Create a flex container if not exists
+                                flexContainer = document.createElement('div');
+                                flexContainer.className = 'd-flex justify-content-between w-100';
+                                metaContainer.appendChild(flexContainer);
+                                
+                                // Move existing rating to the left side if needed
+                                if (ratingCont.parentNode) {
+                                    ratingCont.parentNode.removeChild(ratingCont);
+                                }
+                                
+                                const leftSide = document.createElement('div');
+                                leftSide.appendChild(ratingCont);
+                                flexContainer.appendChild(leftSide);
+                                
+                                // Add button to the right side
+                                const rightSide = document.createElement('div');
+                                rightSide.appendChild(btn);
+                                flexContainer.appendChild(rightSide);
+                            } else {
+                                // Just add button to the existing flex container
+                                const rightSide = flexContainer.querySelector(':last-child') || flexContainer;
+                                rightSide.appendChild(btn);
+                            }
+                        } else {
+                            // Last resort: Just add to user meta
+                            userMeta.appendChild(btn);
+                        }
+                    }
                 }
             }
             
@@ -235,10 +274,21 @@
             let loaded = false;
             let loading = false;
             
+            // Track visibility state
+            let visible = false;
+            
             // Handle click event
             comment.addEventListener('click', e => {
                 // Ignore clicks on contact button or rating
                 if (e.target.closest('.custom-contact-btn') || e.target.closest('.rating-container')) {
+                    return;
+                }
+                
+                // If elements are visible, hide them on second click
+                if (loaded && visible) {
+                    ratingCont.style.display = 'none';
+                    btn.style.display = 'none';
+                    visible = false;
                     return;
                 }
                 
@@ -285,23 +335,27 @@
                             btn.style.display = 'inline-flex';
                             
                             loaded = true;
+                            visible = true;
                         } else {
                             // Hide if no data found
                             ratingCont.style.display = 'none';
+                            visible = false;
                         }
                     })
                     .catch(err => {
                         console.error('Error:', err);
                         ratingCont.style.display = 'none';
+                        visible = false;
                         loaded = false;
                     })
                     .finally(() => {
                         loading = false;
                     });
                 } else if (loaded) {
-                    // Show elements if data is already loaded
+                    // Show elements if data is already loaded but not visible
                     ratingCont.style.display = 'inline-flex';
                     btn.style.display = 'inline-flex';
+                    visible = true;
                 }
             });
             
@@ -345,73 +399,10 @@
         // Re-check layout on window resize
         window.addEventListener('resize', () => {
             document.querySelectorAll('.discussion-item.comment, .comment-item').forEach(comment => {
-                // Reset and reprocess on layout change
-                if (comment.dataset.processed) {
-                    const ratingCont = comment.querySelector('.rating-container');
-                    const btn = comment.querySelector('.custom-contact-btn');
-                    
-                    if (ratingCont && btn) {
-                        if (isMobile()) {
-                            // Move to mobile layout if needed
-                            let wrapper = comment.querySelector('.meta--user-mobile-wrapper');
-                            if (!wrapper) {
-                                const userMeta = comment.querySelector('.meta--user');
-                                if (userMeta) {
-                                    wrapper = document.createElement('div');
-                                    wrapper.className = 'meta--user-mobile-wrapper';
-                                    
-                                    const row = document.createElement('div');
-                                    row.className = 'meta--user-mobile-row';
-                                    
-                                    // Add rating to right side and button to left side
-                                    row.appendChild(ratingCont);
-                                    row.appendChild(btn);
-                                    
-                                    wrapper.appendChild(row);
-                                    userMeta.appendChild(wrapper);
-                                    
-                                    // Remove desktop positioning class
-                                    btn.classList.remove('desktop-position');
-                                    
-                                    // Reset desktop styling
-                                    userMeta.style.display = '';
-                                    userMeta.style.justifyContent = '';
-                                    userMeta.style.width = '';
-                                    userMeta.style.alignItems = '';
-                                }
-                            }
-                        } else {
-                            // Move to desktop layout if needed
-                            const wrapper = comment.querySelector('.meta--user-mobile-wrapper');
-                            if (wrapper) {
-                                const userMeta = comment.querySelector('.meta--user');
-                                
-                                if (userMeta) {
-                                    // Restructure for desktop layout
-                                    userMeta.style.display = 'flex';
-                                    userMeta.style.justifyContent = 'space-between';
-                                    userMeta.style.width = '100%';
-                                    userMeta.style.alignItems = 'center';
-                                    
-                                    // Get the username element
-                                    const usernameEl = userMeta.querySelector('a.user');
-                                    if (usernameEl) {
-                                        // Move the username to the start
-                                        userMeta.insertBefore(usernameEl, userMeta.firstChild);
-                                    }
-                                    
-                                    userMeta.appendChild(ratingCont);
-                                    
-                                    // Add desktop positioning class
-                                    btn.classList.add('desktop-position');
-                                    userMeta.appendChild(btn);
-                                    
-                                    wrapper.remove();
-                                }
-                            }
-                        }
-                    }
-                }
+                // Reset processing flag to allow reprocessing
+                delete comment.dataset.processed;
+                // Re-process the comment
+                processComment(comment);
             });
         });
     };
