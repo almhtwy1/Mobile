@@ -65,6 +65,19 @@
         direction: rtl;
         text-align: right;
       }
+      
+      /* Style specific for integration with category script */
+      .category-icons-span {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 5px !important;
+      }
+      
+      /* Ensure proper alignment when inside category icons */
+      .category-icons-span .comments-count {
+        margin-right: 0;
+        margin-left: 0;
+      }
     `;
     document.head.appendChild(style);
   };
@@ -129,42 +142,49 @@
       return num;
     };
 
-    // Create container for the anchor if it doesn't exist
-    let container = anchor.closest('.anchor-container');
-    if (!container) {
-      // Create a new container 
-      container = document.createElement('div');
-      container.className = 'anchor-container rtl'; // Use RTL for Arabic
-      
-      // Replace the anchor with our container and move the anchor inside
-      anchor.parentNode.insertBefore(container, anchor);
-      container.appendChild(anchor);
-    }
-
-    // Check if we already have a comments-count span
-    let countSpan = container.querySelector('.comments-count');
-
-    if (countSpan) {
-      // Update existing count
-      countSpan.textContent = `(${formatCount(count)})`;
-      if (isNewData) {
-        // Add animation class for newly fetched data
-        countSpan.classList.remove('updated');
-        void countSpan.offsetWidth; // Force reflow to restart animation
-        countSpan.classList.add('updated');
-      }
-    } else {
+    // Find the category icons span that might have been added by the category script
+    const row = anchor.closest('tr, td, .details-td');
+    const categoryIconsSpan = row ? row.querySelector('.category-icons-span') : null;
+    
+    // Create count element if it doesn't exist
+    let countSpan = document.querySelector(`.comments-count[data-href="${anchor.getAttribute('href')}"]`);
+    
+    if (!countSpan) {
       // Create new count element
       countSpan = document.createElement('span');
       countSpan.className = 'comments-count';
+      countSpan.setAttribute('data-href', anchor.getAttribute('href'));
       countSpan.textContent = `(${formatCount(count)})`;
-
-      // Insert after the anchor
-      container.appendChild(countSpan);
-
-      if (isNewData) {
-        countSpan.classList.add('updated');
+      
+      if (categoryIconsSpan) {
+        // If we have category icons from the other script, add it there
+        categoryIconsSpan.appendChild(countSpan);
+      } else {
+        // Create or find container for the anchor
+        let container = anchor.closest('.anchor-container');
+        if (!container) {
+          // Create a new container 
+          container = document.createElement('div');
+          container.className = 'anchor-container rtl'; // Use RTL for Arabic
+          
+          // Replace the anchor with our container and move the anchor inside
+          anchor.parentNode.insertBefore(container, anchor);
+          container.appendChild(anchor);
+        }
+        
+        // Insert after the anchor
+        container.appendChild(countSpan);
       }
+    } else {
+      // Update existing count
+      countSpan.textContent = `(${formatCount(count)})`;
+    }
+    
+    // Apply animation if new data
+    if (isNewData) {
+      countSpan.classList.remove('updated');
+      void countSpan.offsetWidth; // Force reflow to restart animation
+      countSpan.classList.add('updated');
     }
   }
 
@@ -177,7 +197,7 @@
     });
   }
 
-  // Fix any existing comment counts and move them next to the title
+  // Fix any existing comment counts and move them to the right place
   function fixExistingCommentCounts() {
     // Move any existing comment counts to their anchors
     const existingCounts = document.querySelectorAll('.comments-count');
@@ -188,21 +208,34 @@
       // Find the anchor in the same row
       const anchor = row.querySelector('a.ajaxbtn');
       if (!anchor) return;
-
-      // Check if anchor already has a container
-      let container = anchor.closest('.anchor-container');
-      if (!container) {
-        // Create a new container
-        container = document.createElement('div');
-        container.className = 'anchor-container rtl';
-        
-        // Replace the anchor with our container and move the anchor inside
-        anchor.parentNode.insertBefore(container, anchor);
-        container.appendChild(anchor);
+      
+      // Find category icons span if it exists
+      const categoryIconsSpan = row.querySelector('.category-icons-span');
+      
+      // Set data-href attribute to help with identification
+      if (!count.getAttribute('data-href')) {
+        count.setAttribute('data-href', anchor.getAttribute('href'));
       }
-
-      // Move the count to the container
-      container.appendChild(count);
+      
+      if (categoryIconsSpan) {
+        // If category span exists, move count there
+        categoryIconsSpan.appendChild(count);
+      } else {
+        // Check if anchor already has a container
+        let container = anchor.closest('.anchor-container');
+        if (!container) {
+          // Create a new container
+          container = document.createElement('div');
+          container.className = 'anchor-container rtl';
+          
+          // Replace the anchor with our container and move the anchor inside
+          anchor.parentNode.insertBefore(container, anchor);
+          container.appendChild(anchor);
+        }
+        
+        // Move the count to the container
+        container.appendChild(count);
+      }
     });
   }
 
@@ -211,37 +244,85 @@
     // Add styles
     addStyles();
 
-    // Process initial anchors
-    processAnchors();
+    // Wait for the category script to initialize first
+    setTimeout(() => {
+      // Process initial anchors
+      processAnchors();
 
-    // Fix any existing counts
-    fixExistingCommentCounts();
+      // Fix any existing counts
+      fixExistingCommentCounts();
 
-    // MutationObserver to handle dynamically added topics
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node.nodeType !== Node.ELEMENT_NODE) return;
-          if (node.matches && node.matches('a.ajaxbtn:not([data-processed])')) {
-            node.setAttribute('data-processed', 'true');
-            updateAnchor(node);
-          } else {
-            processAnchors(node);
+      // Listen for category icons being added
+      const categoryObserver = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach(node => {
+              // If this is a span added by category script
+              if (node.nodeType === Node.ELEMENT_NODE && 
+                  node.tagName === 'SPAN' && 
+                  node.style.display === 'inline-flex') {
+                // Add a class to identify it
+                node.classList.add('category-icons-span');
+                
+                // Find the related anchor
+                const parentElement = node.parentElement;
+                if (!parentElement) return;
+                
+                const anchor = parentElement.querySelector('a.ajaxbtn');
+                if (!anchor) return;
+                
+                // Find if we have a comment count for this anchor
+                const href = anchor.getAttribute('href');
+                const commentCount = document.querySelector(`.comments-count[data-href="${href}"]`);
+                
+                if (commentCount) {
+                  // Move the comment count to the category span
+                  node.appendChild(commentCount);
+                }
+              }
+            });
           }
         });
       });
-    });
+      
+      // Observe changes to the forum table
+      const forumTable = document.querySelector('#forums_table');
+      if (forumTable) {
+        categoryObserver.observe(forumTable, { 
+          childList: true, 
+          subtree: true 
+        });
+      }
 
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Listen for the "عرض المواضيع الأقدم" button
-    const loadMoreButton = document.getElementById('community_loadmore_btn');
-    if (loadMoreButton) {
-      loadMoreButton.addEventListener('click', () => {
-        // Delay to allow new content to be inserted into DOM
-        setTimeout(() => processAnchors(), 500);
+      // MutationObserver to handle dynamically added topics
+      const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
+            if (node.matches && node.matches('a.ajaxbtn:not([data-processed])')) {
+              node.setAttribute('data-processed', 'true');
+              updateAnchor(node);
+            } else {
+              processAnchors(node);
+            }
+          });
+        });
       });
-    }
+
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      // Listen for the "عرض المواضيع الأقدم" button
+      const loadMoreButton = document.getElementById('community_loadmore_btn');
+      if (loadMoreButton) {
+        loadMoreButton.addEventListener('click', () => {
+          // Delay to allow new content to be inserted into DOM
+          setTimeout(() => {
+            processAnchors();
+            fixExistingCommentCounts();
+          }, 1000);
+        });
+      }
+    }, 500); // Wait 500ms for category script to run first
   }
 
   // Start when DOM is ready
