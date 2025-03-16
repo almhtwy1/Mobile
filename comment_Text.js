@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Khamsat Comment Count Fast Updater - Mobile Friendly
 // @namespace    http://tampermonkey.net/
-// @version      1.3
-// @description  تحديث سريع لعدد التعليقات مع دعم محسن للجوال
+// @version      1.4
+// @description  تحديث سريع لعدد التعليقات مع دعم محسن للجوال وعرض بجانب العنوان
 // @author       Your Name
 // @match        https://khamsat.com/community/requests*
 // @grant        none
@@ -25,7 +25,13 @@
         color: rgb(255, 69, 0);
         font-weight: bold;
         margin-right: 5px;
+        margin-left: 5px;
         transition: all 0.3s ease;
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background-color: rgba(255, 69, 0, 0.1);
       }
 
       /* Animation for when comment count updates */
@@ -39,26 +45,25 @@
         animation: pulse 1s ease-in-out;
       }
 
-      /* Keep consistent mobile/desktop appearance */
-      @media screen and (max-width: 767px), screen and (min-width: 768px) {
+      /* Make it more compact on very small screens */
+      @media screen and (max-width: 375px) {
         .comments-count {
-          display: inline-block;
-          font-size: 12px;
-          padding: 2px 6px;
-          border-radius: 10px;
-          background-color: rgba(255, 69, 0, 0.1);
-          color: rgb(255, 69, 0);
-          font-weight: bold;
-          margin-right: 4px;
+          font-size: 11px;
+          padding: 1px 4px;
         }
-
-        /* Make it more compact on very small screens */
-        @media screen and (max-width: 375px) {
-          .comments-count {
-            font-size: 11px;
-            padding: 1px 4px;
-          }
-        }
+      }
+      
+      /* Style for the anchor container */
+      .anchor-container {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      
+      /* RTL support for the container */
+      .anchor-container.rtl {
+        direction: rtl;
+        text-align: right;
       }
     `;
     document.head.appendChild(style);
@@ -124,19 +129,24 @@
       return num;
     };
 
-    // Find the details-list parent for consistent positioning
-    const detailsContainer = anchor.closest('td, tr, .details-td, .meta');
-    if (!detailsContainer) return;
-
-    const detailsList = detailsContainer.querySelector('.details-list');
-    if (!detailsList) return;
+    // Create container for the anchor if it doesn't exist
+    let container = anchor.closest('.anchor-container');
+    if (!container) {
+      // Create a new container 
+      container = document.createElement('div');
+      container.className = 'anchor-container rtl'; // Use RTL for Arabic
+      
+      // Replace the anchor with our container and move the anchor inside
+      anchor.parentNode.insertBefore(container, anchor);
+      container.appendChild(anchor);
+    }
 
     // Check if we already have a comments-count span
-    let countSpan = detailsList.querySelector('.comments-count');
+    let countSpan = container.querySelector('.comments-count');
 
     if (countSpan) {
       // Update existing count
-      countSpan.textContent = ` (${formatCount(count)} تعليقات)`;
+      countSpan.textContent = `(${formatCount(count)})`;
       if (isNewData) {
         // Add animation class for newly fetched data
         countSpan.classList.remove('updated');
@@ -147,10 +157,10 @@
       // Create new count element
       countSpan = document.createElement('span');
       countSpan.className = 'comments-count';
-      countSpan.textContent = ` (${formatCount(count)} تعليقات)`;
+      countSpan.textContent = `(${formatCount(count)})`;
 
-      // Always append to the details-list
-      detailsList.appendChild(countSpan);
+      // Insert after the anchor
+      container.appendChild(countSpan);
 
       if (isNewData) {
         countSpan.classList.add('updated');
@@ -167,6 +177,35 @@
     });
   }
 
+  // Fix any existing comment counts and move them next to the title
+  function fixExistingCommentCounts() {
+    // Move any existing comment counts to their anchors
+    const existingCounts = document.querySelectorAll('.comments-count');
+    existingCounts.forEach(count => {
+      const row = count.closest('tr, td');
+      if (!row) return;
+
+      // Find the anchor in the same row
+      const anchor = row.querySelector('a.ajaxbtn');
+      if (!anchor) return;
+
+      // Check if anchor already has a container
+      let container = anchor.closest('.anchor-container');
+      if (!container) {
+        // Create a new container
+        container = document.createElement('div');
+        container.className = 'anchor-container rtl';
+        
+        // Replace the anchor with our container and move the anchor inside
+        anchor.parentNode.insertBefore(container, anchor);
+        container.appendChild(anchor);
+      }
+
+      // Move the count to the container
+      container.appendChild(count);
+    });
+  }
+
   // Main initialization function
   function initialize() {
     // Add styles
@@ -174,6 +213,9 @@
 
     // Process initial anchors
     processAnchors();
+
+    // Fix any existing counts
+    fixExistingCommentCounts();
 
     // MutationObserver to handle dynamically added topics
     const observer = new MutationObserver(mutations => {
@@ -202,29 +244,12 @@
     }
   }
 
-  // Fix any existing comment counts that might be in the wrong place
-  function fixExistingCommentCounts() {
-    const existingCounts = document.querySelectorAll('.comments-count');
-    existingCounts.forEach(count => {
-      const row = count.closest('tr, td');
-      if (!row) return;
-
-      const detailsList = row.querySelector('.details-list');
-      if (detailsList && !detailsList.contains(count)) {
-        // Move the count to the correct location
-        detailsList.appendChild(count);
-      }
-    });
-  }
-
   // Start when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       initialize();
-      fixExistingCommentCounts();
     });
   } else {
     initialize();
-    fixExistingCommentCounts();
   }
 })();
