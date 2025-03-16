@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Khamsat Comment Count Fast Updater - Mobile Friendly
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  تحديث سريع لعدد التعليقات مع دعم محسن للجوال
 // @author       Your Name
 // @match        https://khamsat.com/community/requests*
@@ -39,8 +39,8 @@
         animation: pulse 1s ease-in-out;
       }
       
-      /* Mobile-specific styles */
-      @media screen and (max-width: 767px) {
+      /* Keep consistent mobile/desktop appearance */
+      @media screen and (max-width: 767px), screen and (min-width: 768px) {
         .comments-count {
           display: inline-block;
           font-size: 12px;
@@ -124,47 +124,36 @@
       return num;
     };
     
-    const existingSpan = anchor.querySelector('span.comments-count');
+    // Find the details-list parent for consistent positioning
+    const detailsContainer = anchor.closest('td, tr, .details-td, .meta');
+    if (!detailsContainer) return;
     
-    if (existingSpan) {
+    const detailsList = detailsContainer.querySelector('.details-list');
+    if (!detailsList) return;
+    
+    // Check if we already have a comments-count span
+    let countSpan = detailsList.querySelector('.comments-count');
+    
+    if (countSpan) {
       // Update existing count
-      existingSpan.textContent = ` (${formatCount(count)} تعليقات)`;
+      countSpan.textContent = ` (${formatCount(count)} تعليقات)`;
       if (isNewData) {
         // Add animation class for newly fetched data
-        existingSpan.classList.remove('updated');
-        void existingSpan.offsetWidth; // Force reflow to restart animation
-        existingSpan.classList.add('updated');
+        countSpan.classList.remove('updated');
+        void countSpan.offsetWidth; // Force reflow to restart animation
+        countSpan.classList.add('updated');
       }
     } else {
       // Create new count element
-      const newSpan = document.createElement('span');
-      newSpan.className = 'comments-count';
-      newSpan.textContent = ` (${formatCount(count)} تعليقات)`;
+      countSpan = document.createElement('span');
+      countSpan.className = 'comments-count';
+      countSpan.textContent = ` (${formatCount(count)} تعليقات)`;
       
-      // Position based on mobile or desktop
-      if (isMobile()) {
-        // For mobile, find a better position 
-        const detailsContainer = anchor.closest('.details-td');
-        if (detailsContainer) {
-          // Find meta info row in details container
-          const metaInfo = detailsContainer.querySelector('.details-list') || 
-                           detailsContainer.querySelector('.meta');
-          
-          if (metaInfo) {
-            metaInfo.appendChild(newSpan);
-          } else {
-            anchor.appendChild(newSpan);
-          }
-        } else {
-          anchor.appendChild(newSpan);
-        }
-      } else {
-        // For desktop, simple append to anchor
-        anchor.appendChild(newSpan);
-      }
+      // Always append to the details-list
+      detailsList.appendChild(countSpan);
       
       if (isNewData) {
-        newSpan.classList.add('updated');
+        countSpan.classList.add('updated');
       }
     }
   }
@@ -178,44 +167,6 @@
     });
   }
 
-  // Setup observation for window resize events
-  function setupResizeHandler() {
-    let lastWidth = window.innerWidth;
-    const isCurrentlyMobile = isMobile();
-    
-    window.addEventListener('resize', () => {
-      const currentWidth = window.innerWidth;
-      
-      // Only react to significant width changes that cross the mobile threshold
-      if ((lastWidth <= 767 && currentWidth > 767) || (lastWidth > 767 && currentWidth <= 767)) {
-        lastWidth = currentWidth;
-        
-        // Re-adjust comment count elements for all processed anchors
-        document.querySelectorAll('a.ajaxbtn[data-processed="true"]').forEach(anchor => {
-          const span = anchor.querySelector('span.comments-count');
-          if (span) {
-            // Reposition for mobile/desktop as needed
-            if (isMobile()) {
-              const detailsContainer = anchor.closest('.details-td');
-              if (detailsContainer) {
-                const metaInfo = detailsContainer.querySelector('.details-list') || 
-                                 detailsContainer.querySelector('.meta');
-                if (metaInfo && !metaInfo.contains(span)) {
-                  metaInfo.appendChild(span);
-                }
-              }
-            } else {
-              // For desktop, ensure it's appended to anchor
-              if (!anchor.contains(span)) {
-                anchor.appendChild(span);
-              }
-            }
-          }
-        });
-      }
-    });
-  }
-
   // Main initialization function
   function initialize() {
     // Add styles
@@ -223,9 +174,6 @@
     
     // Process initial anchors
     processAnchors();
-    
-    // Setup resize handler for responsive adjustments
-    setupResizeHandler();
     
     // MutationObserver to handle dynamically added topics
     const observer = new MutationObserver(mutations => {
@@ -254,10 +202,29 @@
     }
   }
 
+  // Fix any existing comment counts that might be in the wrong place
+  function fixExistingCommentCounts() {
+    const existingCounts = document.querySelectorAll('.comments-count');
+    existingCounts.forEach(count => {
+      const row = count.closest('tr, td');
+      if (!row) return;
+      
+      const detailsList = row.querySelector('.details-list');
+      if (detailsList && !detailsList.contains(count)) {
+        // Move the count to the correct location
+        detailsList.appendChild(count);
+      }
+    });
+  }
+
   // Start when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
+    document.addEventListener('DOMContentLoaded', () => {
+      initialize();
+      fixExistingCommentCounts();
+    });
   } else {
     initialize();
+    fixExistingCommentCounts();
   }
 })();
