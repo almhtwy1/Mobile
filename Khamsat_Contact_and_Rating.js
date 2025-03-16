@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Khamsat Contact & Rating Mobile Friendly
 // @namespace    https://khamsat.com/
-// @version      1.1
+// @version      1.2
 // @description  إضافة زر "اتصل بي" وعرض التقييمات للمعلقين في خمسات - نسخة محسنة للجوال
 // @author       Your Name
 // @match        https://khamsat.com/community/requests/*
@@ -85,16 +85,21 @@
                     align-items: center;
                     margin-top: 5px;
                     flex-wrap: wrap;
+                    width: 100%;
+                    justify-content: space-between;
                 }
                 
                 .custom-contact-btn {
                     padding: 3px 10px;
                     font-size: 12px;
                     margin-bottom: 4px;
+                    margin-right: 0;
+                    margin-left: 8px;
                 }
                 
                 .rating-container {
                     margin-bottom: 4px;
+                    margin-right: 0;
                 }
                 
                 /* Fix for overlapping elements in mobile view */
@@ -102,6 +107,17 @@
                 .comment-item .meta {
                     flex-wrap: wrap;
                 }
+            }
+            
+            /* Positioning for desktop */
+            .meta--user {
+                position: relative;
+            }
+            
+            .custom-contact-btn.desktop-position {
+                position: absolute;
+                right: 10px;
+                top: 0;
             }
             
             /* Loading animation */
@@ -169,26 +185,26 @@
                         wrapper = document.createElement('div');
                         wrapper.className = 'meta--user-mobile-wrapper';
                         
-                        // Create a row for the rating and contact button
+                        // Create a row for the rating and contact button with space-between
                         const row = document.createElement('div');
                         row.className = 'meta--user-mobile-row';
                         
+                        // Add rating to the right (first in RTL layout)
                         row.appendChild(ratingCont);
+                        
+                        // Add button to the left (second in RTL layout)
                         row.appendChild(btn);
                         
                         wrapper.appendChild(row);
                         userMeta.appendChild(wrapper);
                     }
                 } else {
-                    // For desktop: Add directly to user meta
+                    // For desktop: Add rating to user meta
                     userMeta.appendChild(ratingCont);
                     
-                    // For desktop, add button to media container
-                    const media = comment.querySelector('.o-media');
-                    if (media) {
-                        media.style.position = 'relative';
-                        media.appendChild(btn);
-                    }
+                    // Position the contact button on the opposite side
+                    btn.classList.add('desktop-position');
+                    userMeta.appendChild(btn);
                 }
             }
             
@@ -329,6 +345,9 @@
                                     
                                     wrapper.appendChild(row);
                                     userMeta.appendChild(wrapper);
+                                    
+                                    // Remove desktop positioning class
+                                    btn.classList.remove('desktop-position');
                                 }
                             }
                         } else {
@@ -336,11 +355,14 @@
                             const wrapper = comment.querySelector('.meta--user-mobile-wrapper');
                             if (wrapper) {
                                 const userMeta = comment.querySelector('.meta--user');
-                                const media = comment.querySelector('.o-media');
                                 
-                                if (userMeta && media) {
+                                if (userMeta) {
                                     userMeta.appendChild(ratingCont);
-                                    media.appendChild(btn);
+                                    
+                                    // Add desktop positioning class
+                                    btn.classList.add('desktop-position');
+                                    userMeta.appendChild(btn);
+                                    
                                     wrapper.remove();
                                 }
                             }
