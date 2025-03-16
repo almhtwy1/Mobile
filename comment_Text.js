@@ -66,17 +66,16 @@
         text-align: right;
       }
       
-      /* Style specific for integration with category script */
-      .category-icons-span {
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 5px !important;
+      /* Position comment count correctly */
+      h3 .comments-count {
+        display: inline-block;
+        vertical-align: middle;
+        margin: 0 5px;
       }
       
-      /* Ensure proper alignment when inside category icons */
-      .category-icons-span .comments-count {
-        margin-right: 0;
-        margin-left: 0;
+      /* Ensure count is always visible */
+      .comments-count {
+        z-index: 5;
       }
     `;
     document.head.appendChild(style);
@@ -142,9 +141,12 @@
       return num;
     };
 
-    // Find the category icons span that might have been added by the category script
-    const row = anchor.closest('tr, td, .details-td');
-    const categoryIconsSpan = row ? row.querySelector('.category-icons-span') : null;
+    // Find the h3 parent that contains the anchor
+    const h3Element = anchor.closest('h3');
+    if (!h3Element) return;
+    
+    // Find the category icons span
+    let categoryIconsSpan = h3Element.querySelector('span[style*="inline-flex"]');
     
     // Create count element if it doesn't exist
     let countSpan = document.querySelector(`.comments-count[data-href="${anchor.getAttribute('href')}"]`);
@@ -157,10 +159,10 @@
       countSpan.textContent = `(${formatCount(count)})`;
       
       if (categoryIconsSpan) {
-        // If we have category icons from the other script, add it there
-        categoryIconsSpan.appendChild(countSpan);
+        // If category icons span exists, insert count before it
+        h3Element.insertBefore(countSpan, categoryIconsSpan);
       } else {
-        // Create or find container for the anchor
+        // Create or find container for the anchor if category span doesn't exist
         let container = anchor.closest('.anchor-container');
         if (!container) {
           // Create a new container 
@@ -178,6 +180,12 @@
     } else {
       // Update existing count
       countSpan.textContent = `(${formatCount(count)})`;
+      
+      // Ensure it's in the correct position
+      if (categoryIconsSpan && countSpan.nextSibling !== categoryIconsSpan && !categoryIconsSpan.contains(countSpan)) {
+        // Move it to be before the category icons span
+        h3Element.insertBefore(countSpan, categoryIconsSpan);
+      }
     }
     
     // Apply animation if new data
@@ -209,8 +217,12 @@
       const anchor = row.querySelector('a.ajaxbtn');
       if (!anchor) return;
       
+      // Find the h3 element that contains the anchor
+      const h3Element = anchor.closest('h3');
+      if (!h3Element) return;
+      
       // Find category icons span if it exists
-      const categoryIconsSpan = row.querySelector('.category-icons-span');
+      const categoryIconsSpan = h3Element.querySelector('span[style*="inline-flex"]');
       
       // Set data-href attribute to help with identification
       if (!count.getAttribute('data-href')) {
@@ -218,8 +230,8 @@
       }
       
       if (categoryIconsSpan) {
-        // If category span exists, move count there
-        categoryIconsSpan.appendChild(count);
+        // Insert before the category icons span
+        h3Element.insertBefore(count, categoryIconsSpan);
       } else {
         // Check if anchor already has a container
         let container = anchor.closest('.anchor-container');
@@ -261,14 +273,12 @@
               if (node.nodeType === Node.ELEMENT_NODE && 
                   node.tagName === 'SPAN' && 
                   node.style.display === 'inline-flex') {
-                // Add a class to identify it
-                node.classList.add('category-icons-span');
                 
                 // Find the related anchor
-                const parentElement = node.parentElement;
-                if (!parentElement) return;
+                const h3Element = node.closest('h3');
+                if (!h3Element) return;
                 
-                const anchor = parentElement.querySelector('a.ajaxbtn');
+                const anchor = h3Element.querySelector('a.ajaxbtn');
                 if (!anchor) return;
                 
                 // Find if we have a comment count for this anchor
@@ -276,8 +286,11 @@
                 const commentCount = document.querySelector(`.comments-count[data-href="${href}"]`);
                 
                 if (commentCount) {
-                  // Move the comment count to the category span
-                  node.appendChild(commentCount);
+                  // Move the comment count to be before the category span
+                  h3Element.insertBefore(commentCount, node);
+                } else {
+                  // If we don't have a count yet, process the anchor to get one
+                  updateAnchor(anchor);
                 }
               }
             });
