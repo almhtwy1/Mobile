@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Khamsat Comment Count Fast Updater - Mobile Friendly
+// @name         Khamsat Comment Count Fast Updater - Unified Position
 // @namespace    http://tampermonkey.net/
-// @version      1.2
-// @description  تحديث سريع لعدد التعليقات مع دعم محسن للجوال
+// @version      1.3
+// @description  تحديث سريع لعدد التعليقات مع موضع موحد للعرض في مختلف الشاشات
 // @author       Your Name
 // @match        https://khamsat.com/community/requests*
 // @grant        none
@@ -20,12 +20,13 @@
   const addStyles = () => {
     const style = document.createElement('style');
     style.textContent = `
-      /* Base styles for comment count */
+      /* Base styles for comment count - consistent across all devices */
       .comments-count {
         color: rgb(255, 69, 0);
         font-weight: bold;
         margin-right: 5px;
         transition: all 0.3s ease;
+        display: inline-block;
       }
       
       /* Animation for when comment count updates */
@@ -39,25 +40,20 @@
         animation: pulse 1s ease-in-out;
       }
       
-      /* Mobile-specific styles */
-      @media screen and (max-width: 767px) {
+      /* Consistent style across all screen sizes */
+      .comments-count {
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background-color: rgba(255, 69, 0, 0.1);
+        margin-right: 4px;
+      }
+      
+      /* Make it more compact on very small screens but keep position consistent */
+      @media screen and (max-width: 375px) {
         .comments-count {
-          display: inline-block;
-          font-size: 12px;
-          padding: 2px 6px;
-          border-radius: 10px;
-          background-color: rgba(255, 69, 0, 0.1);
-          color: rgb(255, 69, 0);
-          font-weight: bold;
-          margin-right: 4px;
-        }
-        
-        /* Make it more compact on very small screens */
-        @media screen and (max-width: 375px) {
-          .comments-count {
-            font-size: 11px;
-            padding: 1px 4px;
-          }
+          font-size: 11px;
+          padding: 1px 4px;
         }
       }
     `;
@@ -118,8 +114,8 @@
   function updateCountDisplay(anchor, count, isNewData = false) {
     // Arabic number formatter
     const formatCount = (num) => {
-      if (isMobile() && num > 99) {
-        return '99+'; // Simplify for mobile if count is large
+      if (num > 99) {
+        return '99+'; // Simplify if count is large
       }
       return num;
     };
@@ -141,27 +137,8 @@
       newSpan.className = 'comments-count';
       newSpan.textContent = ` (${formatCount(count)} تعليقات)`;
       
-      // Position based on mobile or desktop
-      if (isMobile()) {
-        // For mobile, find a better position 
-        const detailsContainer = anchor.closest('.details-td');
-        if (detailsContainer) {
-          // Find meta info row in details container
-          const metaInfo = detailsContainer.querySelector('.details-list') || 
-                           detailsContainer.querySelector('.meta');
-          
-          if (metaInfo) {
-            metaInfo.appendChild(newSpan);
-          } else {
-            anchor.appendChild(newSpan);
-          }
-        } else {
-          anchor.appendChild(newSpan);
-        }
-      } else {
-        // For desktop, simple append to anchor
-        anchor.appendChild(newSpan);
-      }
+      // Always append directly to the anchor - consistent position
+      anchor.appendChild(newSpan);
       
       if (isNewData) {
         newSpan.classList.add('updated');
@@ -178,44 +155,6 @@
     });
   }
 
-  // Setup observation for window resize events
-  function setupResizeHandler() {
-    let lastWidth = window.innerWidth;
-    const isCurrentlyMobile = isMobile();
-    
-    window.addEventListener('resize', () => {
-      const currentWidth = window.innerWidth;
-      
-      // Only react to significant width changes that cross the mobile threshold
-      if ((lastWidth <= 767 && currentWidth > 767) || (lastWidth > 767 && currentWidth <= 767)) {
-        lastWidth = currentWidth;
-        
-        // Re-adjust comment count elements for all processed anchors
-        document.querySelectorAll('a.ajaxbtn[data-processed="true"]').forEach(anchor => {
-          const span = anchor.querySelector('span.comments-count');
-          if (span) {
-            // Reposition for mobile/desktop as needed
-            if (isMobile()) {
-              const detailsContainer = anchor.closest('.details-td');
-              if (detailsContainer) {
-                const metaInfo = detailsContainer.querySelector('.details-list') || 
-                                 detailsContainer.querySelector('.meta');
-                if (metaInfo && !metaInfo.contains(span)) {
-                  metaInfo.appendChild(span);
-                }
-              }
-            } else {
-              // For desktop, ensure it's appended to anchor
-              if (!anchor.contains(span)) {
-                anchor.appendChild(span);
-              }
-            }
-          }
-        });
-      }
-    });
-  }
-
   // Main initialization function
   function initialize() {
     // Add styles
@@ -223,9 +162,6 @@
     
     // Process initial anchors
     processAnchors();
-    
-    // Setup resize handler for responsive adjustments
-    setupResizeHandler();
     
     // MutationObserver to handle dynamically added topics
     const observer = new MutationObserver(mutations => {
