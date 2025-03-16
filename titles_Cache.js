@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Titles Cache Mobile Friendly
 // @namespace    https://khamsat.com/
-// @version      1.3
-// @description  اظهار مسمى المشتري - نسخة محسنة للجوال
+// @version      1.4
+// @description  اظهار مسمى المشتري (أصحاب المواضيع فقط) - نسخة محسنة للجوال
 // @author       Your Name
 // @match        https://khamsat.com/community/requests
 // @icon         https://khamsat.com/favicon.ico
@@ -113,28 +113,45 @@
     }
 
     function uT() {
-      // Use a more comprehensive selector to catch all user links
-      document.querySelectorAll('td.details-td ul.details-list li a.user, .meta--user a.user, a.user, .forum-topic a[href^="/user/"]').forEach(a => {
-        // Skip if already processed
-        if (a.querySelector('.user-title') || a.getAttribute('data-processed')) return;
+      // ======== IMPORTANT CHANGE ========
+      // Target only topic owners (right side users) and not "آخر تفاعل" users
+      document.querySelectorAll('tr').forEach(row => {
+        // Find the rightmost column in each row (topic owner column)
+        const lastCell = row.querySelector('td:last-child') || row.querySelector('td.details-td');
+        if (!lastCell) return;
         
-        // Mark as processed to avoid duplicate processing
-        a.setAttribute('data-processed', 'true');
+        // Get only the main user link, not the "آخر تفاعل" links
+        const userLinks = lastCell.querySelectorAll('a.user');
         
-        let href = a.getAttribute('href');
-        // Make sure we have the full URL
-        let h = href.startsWith('http') ? href : `https://khamsat.com${href}`;
-        
-        // Check if cached title is valid before using it
-        if (C[h] && typeof C[h] === 'string' && C[h] !== '[object Object]') {
-          ad(a, C[h]);
-        } else {
-          // If the cached title is invalid, remove it and fetch again
-          if (C[h]) {
-            delete C[h];
-            localStorage.setItem('titlesCache', JSON.stringify(C));
+        // Process only the first user link in the cell (the topic owner)
+        if (userLinks.length > 0) {
+          const a = userLinks[0];
+          
+          // Make sure we're not processing "آخر تفاعل" users by checking for clock icon nearby
+          const isLastActivity = a.closest('li') && a.closest('li').querySelector('i.fa-clock-o');
+          if (isLastActivity) return;
+          
+          // Skip if already processed
+          if (a.querySelector('.user-title') || a.getAttribute('data-processed')) return;
+          
+          // Mark as processed to avoid duplicate processing
+          a.setAttribute('data-processed', 'true');
+          
+          let href = a.getAttribute('href');
+          // Make sure we have the full URL
+          let h = href.startsWith('http') ? href : `https://khamsat.com${href}`;
+          
+          // Check if cached title is valid before using it
+          if (C[h] && typeof C[h] === 'string' && C[h] !== '[object Object]') {
+            ad(a, C[h]);
+          } else {
+            // If the cached title is invalid, remove it and fetch again
+            if (C[h]) {
+              delete C[h];
+              localStorage.setItem('titlesCache', JSON.stringify(C));
+            }
+            Q.push(() => pr(a, h));
           }
-          Q.push(() => pr(a, h));
         }
       });
       pq();
