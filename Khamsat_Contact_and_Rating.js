@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Khamsat Contact & Rating Mobile Friendly
 // @namespace    https://khamsat.com/
-// @version      1.2
+// @version      1.3
 // @description  إضافة زر "اتصل بي" وعرض التقييمات للمعلقين في خمسات - نسخة محسنة للجوال
 // @author       Your Name
 // @match        https://khamsat.com/community/requests/*
@@ -93,13 +93,13 @@
                     padding: 3px 10px;
                     font-size: 12px;
                     margin-bottom: 4px;
-                    margin-right: 0;
-                    margin-left: 8px;
+                    order: 2; /* Force to appear second/left in RTL */
                 }
                 
                 .rating-container {
                     margin-bottom: 4px;
                     margin-right: 0;
+                    order: 1; /* Force to appear first/right in RTL */
                 }
                 
                 /* Fix for overlapping elements in mobile view */
@@ -111,13 +111,23 @@
             
             /* Positioning for desktop */
             .meta--user {
-                position: relative;
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+                align-items: center;
+            }
+            
+            /* Fixed positioning to ensure left/right alignment */
+            .meta--user a.user {
+                order: 1; /* Username first */
+            }
+            
+            .rating-container {
+                order: 2; /* Rating second, right after username */
             }
             
             .custom-contact-btn.desktop-position {
-                position: absolute;
-                right: 10px;
-                top: 0;
+                order: 3; /* Contact button last (far left in RTL) */
             }
             
             /* Loading animation */
@@ -189,20 +199,33 @@
                         const row = document.createElement('div');
                         row.className = 'meta--user-mobile-row';
                         
-                        // Add rating to the right (first in RTL layout)
+                        // Add rating to the right side (RTL: will appear on right)
                         row.appendChild(ratingCont);
                         
-                        // Add button to the left (second in RTL layout)
+                        // Add button to the left side (RTL: will appear on left)
                         row.appendChild(btn);
                         
                         wrapper.appendChild(row);
                         userMeta.appendChild(wrapper);
                     }
                 } else {
-                    // For desktop: Add rating to user meta
+                    // Restructure the userMeta to be flex with space-between
+                    userMeta.style.display = 'flex';
+                    userMeta.style.justifyContent = 'space-between';
+                    userMeta.style.width = '100%';
+                    userMeta.style.alignItems = 'center';
+                    
+                    // Get the username element
+                    const usernameEl = userMeta.querySelector('a.user');
+                    if (usernameEl) {
+                        // Move the username to the start
+                        userMeta.insertBefore(usernameEl, userMeta.firstChild);
+                    }
+                    
+                    // Add rating after username (will be in the middle)
                     userMeta.appendChild(ratingCont);
                     
-                    // Position the contact button on the opposite side
+                    // Add contact button at the end (will be on the left in RTL layout)
                     btn.classList.add('desktop-position');
                     userMeta.appendChild(btn);
                 }
@@ -340,6 +363,7 @@
                                     const row = document.createElement('div');
                                     row.className = 'meta--user-mobile-row';
                                     
+                                    // Add rating to right side and button to left side
                                     row.appendChild(ratingCont);
                                     row.appendChild(btn);
                                     
@@ -348,6 +372,12 @@
                                     
                                     // Remove desktop positioning class
                                     btn.classList.remove('desktop-position');
+                                    
+                                    // Reset desktop styling
+                                    userMeta.style.display = '';
+                                    userMeta.style.justifyContent = '';
+                                    userMeta.style.width = '';
+                                    userMeta.style.alignItems = '';
                                 }
                             }
                         } else {
@@ -357,6 +387,19 @@
                                 const userMeta = comment.querySelector('.meta--user');
                                 
                                 if (userMeta) {
+                                    // Restructure for desktop layout
+                                    userMeta.style.display = 'flex';
+                                    userMeta.style.justifyContent = 'space-between';
+                                    userMeta.style.width = '100%';
+                                    userMeta.style.alignItems = 'center';
+                                    
+                                    // Get the username element
+                                    const usernameEl = userMeta.querySelector('a.user');
+                                    if (usernameEl) {
+                                        // Move the username to the start
+                                        userMeta.insertBefore(usernameEl, userMeta.firstChild);
+                                    }
+                                    
                                     userMeta.appendChild(ratingCont);
                                     
                                     // Add desktop positioning class
