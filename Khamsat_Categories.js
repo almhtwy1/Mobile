@@ -25,16 +25,16 @@
     // Categories configuration
     const categories = {
         تصميم: {
-            keywords: ['تصميم', 'مصممه', 'مصمم', 'لوغو', 'canva', 'شعارات', 'هوية', 'جرافيك', 'شعار', 'تصاميم', 
-                      'صور', 'صوره', 'صورة', 'تيكتوك', 'بوستات', 'بوست', 'مسوقين', 'مسوق', 'سوشيال', 'مصممين', 
-                      'كانفا', 'ui', 'ux', 'بوستر', 'غلاف', 'بروشور', 'بانر', 'هوية بصرية', 'انفوجرافيك', 
+            keywords: ['تصميم', 'مصممه', 'مصمم', 'لوغو', 'canva', 'شعارات', 'هوية', 'جرافيك', 'شعار', 'تصاميم',
+                      'صور', 'صوره', 'صورة', 'تيكتوك', 'بوستات', 'بوست', 'مسوقين', 'مسوق', 'سوشيال', 'مصممين',
+                      'كانفا', 'ui', 'ux', 'بوستر', 'غلاف', 'بروشور', 'بانر', 'هوية بصرية', 'انفوجرافيك',
                       'بروفايل', 'اليستريتور', 'فوتوشوب', 'عرض بوربوينت', 'بوث', 'مخطط مفاهيم', 'مصمم ويب'],
             icon: 'fa-palette',
             color: '#17a2b8'
         },
         كتابة: {
-            keywords: ['كتابة', 'لكتابة', 'لكتابه', 'ترجمة', 'ترجمه', 'محتوى', 'مقالات', 'كتيب', 'مجلة', 'مقال', 'تفريغ', 'كاتب', 'تأليف', 'مدونة', 
-                      'نص', 'سيناريو', 'سيو', 'تلخيص', 'سيرة ذاتية', 'بحث', 'تدقيق', 'تحرير', 'صياغة', 
+            keywords: ['كتابة', 'لكتابة', 'لكتابه', 'ترجمة', 'ترجمه', 'محتوى', 'مقالات', 'كتيب', 'مجلة', 'مقال', 'تفريغ', 'كاتب', 'تأليف', 'مدونة',
+                      'نص', 'سيناريو', 'سيو', 'تلخيص', 'سيرة ذاتية', 'بحث', 'تدقيق', 'تحرير', 'صياغة',
                       'تنسيق', 'بحث أكاديمي', 'مراجعة'],
             icon: 'fa-pen',
             color: '#6610f2'
@@ -139,11 +139,11 @@
             }
 
             const iconSpan = document.createElement('span');
-            iconSpan.style.cssText = 'display:inline-flex;gap:5px;align-items:center;padding-right:2px';
-            
+            iconSpan.style.cssText = 'display:inline-flex;gap:5px;align-items:center;padding-right:5px';
+
             // Limit to max 3 categories for better mobile display
             const displayCategories = matchedCategories.slice(0, 3);
-            
+
             displayCategories.forEach(categoryName => {
                 const category = categories[categoryName];
                 const icon = document.createElement('i');
@@ -163,7 +163,7 @@
     let currentCategory = 'الكل';
     const filterPosts = (category) => {
         currentCategory = category;
-        
+
         // Update active state on buttons
         document.querySelectorAll('.cat-btn').forEach(btn => {
             if (btn.getAttribute('data-category') === category) {
@@ -172,14 +172,14 @@
                 btn.classList.remove('active-cat');
             }
         });
-        
+
         document.querySelectorAll('#forums_table tr.forum_post').forEach(row => {
-            row.style.display = category === 'الكل' || 
+            row.style.display = category === 'الكل' ||
                 (row.dataset.categories && row.dataset.categories.includes(category))
                 ? ''
                 : 'none';
         });
-        
+
         // No filter status indicator to update - removed as requested
     };
 
@@ -191,12 +191,12 @@
         button.innerHTML = `<i class="fas ${icon}"></i> <span class="cat-text">${name}</span>`;
         button.style.backgroundColor = color;
         button.onclick = onClick;
-        
+
         // Set first button (الكل) as active by default
         if (name === 'الكل') {
             button.classList.add('active-cat');
         }
-        
+
         return button;
     };
 
@@ -204,15 +204,15 @@
     const addCategoryButtons = () => {
         const container = document.createElement('div');
         container.id = 'cat-buttons-container';
-        
+
         // Scrollable inner container for buttons
         const scrollContainer = document.createElement('div');
         scrollContainer.id = 'cat-buttons-scroll';
-        
+
         // Create buttons container
         const buttonsContainer = document.createElement('div');
         buttonsContainer.id = 'cat-buttons';
-        
+
         // Add "All" button
         buttonsContainer.appendChild(
             createCategoryButton('الكل', 'fa-list', '#6c757d', () => filterPosts('الكل'))
@@ -224,7 +224,7 @@
                 createCategoryButton(name, category.icon, category.color, () => filterPosts(name))
             );
         });
-        
+
         // Add scroll buttons for better mobile navigation
         const leftScrollBtn = document.createElement('button');
         leftScrollBtn.id = 'scroll-left';
@@ -232,41 +232,41 @@
         leftScrollBtn.onclick = () => {
             scrollContainer.scrollBy({ left: -100, behavior: 'smooth' });
         };
-        
+
         const rightScrollBtn = document.createElement('button');
         rightScrollBtn.id = 'scroll-right';
         rightScrollBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
         rightScrollBtn.onclick = () => {
             scrollContainer.scrollBy({ left: 100, behavior: 'smooth' });
         };
-        
+
         // No active filter indicator - removed as requested
-        
+
         // Assemble the components
         scrollContainer.appendChild(buttonsContainer);
         container.appendChild(leftScrollBtn);
         container.appendChild(scrollContainer);
         container.appendChild(rightScrollBtn);
-        
+
         // Add everything to the page
         const forumElement = document.querySelector('#forum-requests');
         if (forumElement) {
             forumElement.prepend(container);
         }
-        
+
         // Check for scroll buttons visibility
         const checkScrollButtons = () => {
             const hasOverflow = scrollContainer.scrollWidth > scrollContainer.clientWidth;
             leftScrollBtn.style.display = hasOverflow ? 'flex' : 'none';
             rightScrollBtn.style.display = hasOverflow ? 'flex' : 'none';
-            
+
             // Hide left button when scrolled to start
             if (scrollContainer.scrollLeft <= 0) {
                 leftScrollBtn.style.opacity = '0.5';
             } else {
                 leftScrollBtn.style.opacity = '1';
             }
-            
+
             // Hide right button when scrolled to end
             if (scrollContainer.scrollLeft + scrollContainer.clientWidth >= scrollContainer.scrollWidth - 5) {
                 rightScrollBtn.style.opacity = '0.5';
@@ -274,13 +274,13 @@
                 rightScrollBtn.style.opacity = '1';
             }
         };
-        
+
         // Initialize scroll buttons state
         setTimeout(checkScrollButtons, 100);
-        
+
         // Update scroll buttons on scroll
         scrollContainer.addEventListener('scroll', checkScrollButtons);
-        
+
         // Update on window resize
         window.addEventListener('resize', checkScrollButtons);
     };
@@ -297,7 +297,7 @@
                 width: 100%;
                 direction: rtl;
             }
-            
+
             #cat-buttons-scroll {
                 display: flex;
                 width: 100%;
@@ -309,18 +309,18 @@
                 padding: 5px 0;
                 position: relative;
             }
-            
+
             #cat-buttons-scroll::-webkit-scrollbar {
                 display: none; /* Chrome, Safari, Edge */
             }
-            
+
             #cat-buttons {
                 display: flex;
                 gap: 8px;
                 min-width: max-content;
                 padding: 0 4px;
             }
-            
+
             .cat-btn {
                 color: #fff;
                 border: none;
@@ -336,13 +336,13 @@
                 white-space: nowrap;
                 min-width: max-content;
             }
-            
+
             .cat-btn.active-cat {
                 transform: translateY(-2px);
                 box-shadow: 0 4px 6px rgba(0,0,0,0.25);
                 position: relative;
             }
-            
+
             .cat-btn.active-cat::after {
                 content: '';
                 position: absolute;
@@ -354,16 +354,16 @@
                 background-color: currentColor;
                 border-radius: 3px;
             }
-            
+
             .cat-btn:hover {
                 transform: translateY(-1px);
                 opacity: 0.9;
             }
-            
+
             .cat-btn i {
                 font-size: 12px;
             }
-            
+
             #scroll-left, #scroll-right {
                 display: flex;
                 align-items: center;
@@ -379,21 +379,21 @@
                 cursor: pointer;
                 transition: all 0.3s ease;
             }
-            
+
             #scroll-left:hover, #scroll-right:hover {
                 background-color: #f0f0f0;
             }
-            
+
             #scroll-left {
                 left: 5px;
             }
-            
+
             #scroll-right {
                 right: 5px;
             }
-            
+
             /* Filter indicator styles removed as requested */
-            
+
             /* Fix the post details display for mobile */
             @media screen and (max-width: 767px) {
                 .details-td h3 {
@@ -401,25 +401,25 @@
                     line-height: 1.3;
                     margin-bottom: 5px;
                 }
-                
+
                 .details-td .date {
                     font-size: 11px;
                 }
-                
+
                 .author-td {
                     padding: 5px !important;
                 }
-                
+
                 .author-td .author {
                     font-size: 12px;
                 }
-                
+
                 /* Fix for icons on mobile */
                 .details-td h3 a + span {
                     margin-top: 3px;
                 }
             }
-            
+
             /* Filter indicator media query removed as requested */
         `;
         document.head.appendChild(style);
@@ -429,28 +429,28 @@
     const addTouchScroll = () => {
         const scrollContainer = document.getElementById('cat-buttons-scroll');
         if (!scrollContainer) return;
-        
+
         let isDown = false;
         let startX;
         let scrollLeft;
-        
+
         scrollContainer.addEventListener('mousedown', (e) => {
             isDown = true;
             scrollContainer.classList.add('active');
             startX = e.pageX - scrollContainer.offsetLeft;
             scrollLeft = scrollContainer.scrollLeft;
         });
-        
+
         scrollContainer.addEventListener('mouseleave', () => {
             isDown = false;
             scrollContainer.classList.remove('active');
         });
-        
+
         scrollContainer.addEventListener('mouseup', () => {
             isDown = false;
             scrollContainer.classList.remove('active');
         });
-        
+
         scrollContainer.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault();
@@ -458,13 +458,13 @@
             const walk = (x - startX) * 2; // Scroll speed
             scrollContainer.scrollLeft = scrollLeft - walk;
         });
-        
+
         // For touch devices
         scrollContainer.addEventListener('touchstart', (e) => {
             startX = e.touches[0].pageX - scrollContainer.offsetLeft;
             scrollLeft = scrollContainer.scrollLeft;
         }, { passive: true });
-        
+
         scrollContainer.addEventListener('touchmove', (e) => {
             if (!startX) return;
             const x = e.touches[0].pageX - scrollContainer.offsetLeft;
@@ -476,18 +476,18 @@
     // Detect device and adapt UI accordingly
     const adaptUIToDevice = () => {
         const isMobile = window.innerWidth <= 767;
-        
+
         // Show only icons on very small screens
         if (window.innerWidth < 480) {
             document.querySelectorAll('.cat-btn .cat-text').forEach(text => {
                 text.style.display = 'none';
             });
-            
+
             document.querySelectorAll('.cat-btn').forEach(btn => {
                 btn.style.padding = '6px 8px';
             });
         }
-        
+
         // Add a class to body for additional CSS targeting
         document.body.classList.toggle('khamsat-mobile', isMobile);
     };
@@ -507,10 +507,10 @@
 
         // Add category buttons
         addCategoryButtons();
-        
+
         // Add touch scroll support
         addTouchScroll();
-        
+
         // Adapt UI to device
         adaptUIToDevice();
         window.addEventListener('resize', adaptUIToDevice);
@@ -525,9 +525,9 @@
 
         const forumTable = document.querySelector('#forums_table tbody');
         if (forumTable) {
-            tableObserver.observe(forumTable, { 
-                childList: true, 
-                subtree: true 
+            tableObserver.observe(forumTable, {
+                childList: true,
+                subtree: true
             });
         }
 
