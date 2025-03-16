@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Khamsat Comment Count Fast Updater - Mobile Friendly
+// @name         Khamsat Comment Count Fast Updater - Consistent Position
 // @namespace    http://tampermonkey.net/
 // @version      1.3
-// @description  تحديث سريع لعدد التعليقات مع دعم محسن للجوال
+// @description  تحديث سريع لعدد التعليقات مع موضع ثابت في جميع أحجام الشاشات
 // @author       Your Name
 // @match        https://khamsat.com/community/requests*
 // @grant        none
@@ -39,26 +39,16 @@
         animation: pulse 1s ease-in-out;
       }
       
-      /* Keep consistent mobile/desktop appearance */
-      @media screen and (max-width: 767px), screen and (min-width: 768px) {
-        .comments-count {
-          display: inline-block;
-          font-size: 12px;
-          padding: 2px 6px;
-          border-radius: 10px;
-          background-color: rgba(255, 69, 0, 0.1);
-          color: rgb(255, 69, 0);
-          font-weight: bold;
-          margin-right: 4px;
-        }
-        
-        /* Make it more compact on very small screens */
-        @media screen and (max-width: 375px) {
-          .comments-count {
-            font-size: 11px;
-            padding: 1px 4px;
-          }
-        }
+      /* Consistent styles for all screen sizes */
+      .comments-count {
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background-color: rgba(255, 69, 0, 0.1);
+        color: rgb(255, 69, 0);
+        font-weight: bold;
+        margin-right: 4px;
       }
     `;
     document.head.appendChild(style);
@@ -118,42 +108,42 @@
   function updateCountDisplay(anchor, count, isNewData = false) {
     // Arabic number formatter
     const formatCount = (num) => {
-      if (isMobile() && num > 99) {
-        return '99+'; // Simplify for mobile if count is large
+      if (num > 99) {
+        return '99+'; // Simplify if count is large
       }
       return num;
     };
     
-    // Find the details-list parent for consistent positioning
-    const detailsContainer = anchor.closest('td, tr, .details-td, .meta');
-    if (!detailsContainer) return;
+    // Find the details list element
+    const row = anchor.closest('tr') || anchor.closest('.row');
+    if (!row) return;
     
-    const detailsList = detailsContainer.querySelector('.details-list');
+    const detailsList = row.querySelector('.details-list');
     if (!detailsList) return;
     
-    // Check if we already have a comments-count span
-    let countSpan = detailsList.querySelector('.comments-count');
+    // Look for existing comment count
+    let existingSpan = detailsList.querySelector('span.comments-count');
     
-    if (countSpan) {
+    if (existingSpan) {
       // Update existing count
-      countSpan.textContent = ` (${formatCount(count)} تعليقات)`;
+      existingSpan.textContent = ` (${formatCount(count)} تعليقات)`;
       if (isNewData) {
         // Add animation class for newly fetched data
-        countSpan.classList.remove('updated');
-        void countSpan.offsetWidth; // Force reflow to restart animation
-        countSpan.classList.add('updated');
+        existingSpan.classList.remove('updated');
+        void existingSpan.offsetWidth; // Force reflow to restart animation
+        existingSpan.classList.add('updated');
       }
     } else {
       // Create new count element
-      countSpan = document.createElement('span');
-      countSpan.className = 'comments-count';
-      countSpan.textContent = ` (${formatCount(count)} تعليقات)`;
+      const newSpan = document.createElement('span');
+      newSpan.className = 'comments-count';
+      newSpan.textContent = ` (${formatCount(count)} تعليقات)`;
       
-      // Always append to the details-list
-      detailsList.appendChild(countSpan);
+      // Always append to details list
+      detailsList.appendChild(newSpan);
       
       if (isNewData) {
-        countSpan.classList.add('updated');
+        newSpan.classList.add('updated');
       }
     }
   }
@@ -202,29 +192,10 @@
     }
   }
 
-  // Fix any existing comment counts that might be in the wrong place
-  function fixExistingCommentCounts() {
-    const existingCounts = document.querySelectorAll('.comments-count');
-    existingCounts.forEach(count => {
-      const row = count.closest('tr, td');
-      if (!row) return;
-      
-      const detailsList = row.querySelector('.details-list');
-      if (detailsList && !detailsList.contains(count)) {
-        // Move the count to the correct location
-        detailsList.appendChild(count);
-      }
-    });
-  }
-
   // Start when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      initialize();
-      fixExistingCommentCounts();
-    });
+    document.addEventListener('DOMContentLoaded', initialize);
   } else {
     initialize();
-    fixExistingCommentCounts();
   }
 })();
