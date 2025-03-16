@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Titles Cache Mobile Friendly
 // @namespace    https://khamsat.com/
-// @version      1.4
+// @version      1.5
 // @description  اظهار مسمى المشتري (أصحاب المواضيع فقط) - نسخة محسنة للجوال
 // @author       Your Name
 // @match        https://khamsat.com/community/requests
@@ -113,51 +113,66 @@
     }
 
     function uT() {
-      // ======== IMPORTANT CHANGE ========
-      // Target only topic owners (right side users) and not "آخر تفاعل" users
+      // First, clean up any incorrect user titles in the left column
       document.querySelectorAll('tr').forEach(row => {
-        // Find the rightmost column in each row (topic owner column)
-        const lastCell = row.querySelector('td:last-child') || row.querySelector('td.details-td');
-        if (!lastCell) return;
-        
-        // Get only the main user link, not the "آخر تفاعل" links
-        const userLinks = lastCell.querySelectorAll('a.user');
-        
-        // Process only the first user link in the cell (the topic owner)
-        if (userLinks.length > 0) {
-          const a = userLinks[0];
-          
-          // Make sure we're not processing "آخر تفاعل" users by checking for clock icon nearby
-          const isLastActivity = a.closest('li') && a.closest('li').querySelector('i.fa-clock-o');
-          if (isLastActivity) return;
-          
-          // Skip if already processed
-          if (a.querySelector('.user-title') || a.getAttribute('data-processed')) return;
-          
-          // Mark as processed to avoid duplicate processing
-          a.setAttribute('data-processed', 'true');
-          
-          let href = a.getAttribute('href');
-          // Make sure we have the full URL
-          let h = href.startsWith('http') ? href : `https://khamsat.com${href}`;
-          
-          // Check if cached title is valid before using it
-          if (C[h] && typeof C[h] === 'string' && C[h] !== '[object Object]') {
-            ad(a, C[h]);
-          } else {
-            // If the cached title is invalid, remove it and fetch again
-            if (C[h]) {
-              delete C[h];
-              localStorage.setItem('titlesCache', JSON.stringify(C));
-            }
-            Q.push(() => pr(a, h));
-          }
+        // Find the left cell (which should not have user titles)
+        const leftCell = row.querySelector('td:last-child');
+        if (leftCell) {
+          // Remove any user titles from last activity users
+          const leftUserTitles = leftCell.querySelectorAll('.user-title');
+          leftUserTitles.forEach(title => title.remove());
         }
       });
-      pq();
       
-      // Log for debugging
-      console.log('Titles updated - processed ' + document.querySelectorAll('[data-processed="true"]').length + ' users');
+      // Now process only the topic creators (users on the right side)
+      document.querySelectorAll('tr').forEach(row => {
+        // Check if this is a proper topic row
+        if (!row.querySelector('td')) return;
+        
+        // Find the right cell where topic creator is
+        const rightCell = Array.from(row.querySelectorAll('td')).find(cell => {
+          // The rightmost cell with the topic title and creator
+          return cell.querySelector('a.ajaxbtn') || 
+                 cell.classList.contains('details-td') ||
+                 cell.classList.contains('forum-topic');
+        });
+        
+        if (!rightCell) return;
+        
+        // Find only the main user link (topic creator)
+        const userLinks = rightCell.querySelectorAll('a.user');
+        if (userLinks.length === 0) return;
+        
+        // Get the first user link (should be the topic creator)
+        const userLink = userLinks[0];
+        
+        // Skip if already processed or has title
+        if (userLink.getAttribute('data-processed') || userLink.querySelector('.user-title')) return;
+        
+        // Double-check: make sure this is not a "last activity" user
+        if (userLink.closest('li') && userLink.closest('li').querySelector('i.fa-clock-o')) return;
+        
+        // Mark as processed
+        userLink.setAttribute('data-processed', 'true');
+        
+        // Get user profile URL
+        let href = userLink.getAttribute('href');
+        let h = href.startsWith('http') ? href : `https://khamsat.com${href}`;
+        
+        // Check cache or fetch
+        if (C[h] && typeof C[h] === 'string' && C[h] !== '[object Object]') {
+          ad(userLink, C[h]);
+        } else {
+          if (C[h]) {
+            delete C[h];
+            localStorage.setItem('titlesCache', JSON.stringify(C));
+          }
+          Q.push(() => pr(userLink, h));
+        }
+      });
+      
+      pq();
+      console.log('Titles updated - processed topic creators only');
     }
 
     // Clear invalid entries from cache on initial load
