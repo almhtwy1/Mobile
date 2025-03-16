@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Titles Cache Mobile Friendly
 // @namespace    https://khamsat.com/
-// @version      1.2
+// @version      1.3
 // @description  اظهار مسمى المشتري - نسخة محسنة للجوال
 // @author       Your Name
 // @match        https://khamsat.com/community/requests
@@ -113,8 +113,17 @@
     }
 
     function uT() {
-      document.querySelectorAll('td.details-td ul.details-list li a.user, .meta--user a.user').forEach(a => {
-        let h = `https://khamsat.com${a.getAttribute('href')}`;
+      // Use a more comprehensive selector to catch all user links
+      document.querySelectorAll('td.details-td ul.details-list li a.user, .meta--user a.user, a.user, .forum-topic a[href^="/user/"]').forEach(a => {
+        // Skip if already processed
+        if (a.querySelector('.user-title') || a.getAttribute('data-processed')) return;
+        
+        // Mark as processed to avoid duplicate processing
+        a.setAttribute('data-processed', 'true');
+        
+        let href = a.getAttribute('href');
+        // Make sure we have the full URL
+        let h = href.startsWith('http') ? href : `https://khamsat.com${href}`;
         
         // Check if cached title is valid before using it
         if (C[h] && typeof C[h] === 'string' && C[h] !== '[object Object]') {
@@ -129,6 +138,9 @@
         }
       });
       pq();
+      
+      // Log for debugging
+      console.log('Titles updated - processed ' + document.querySelectorAll('[data-processed="true"]').length + ' users');
     }
 
     // Clear invalid entries from cache on initial load
@@ -155,6 +167,38 @@
     const tableContainer = document.querySelector('#forums_table');
     if (tableContainer) {
       observer.observe(tableContainer, {
+        childList: true,
+        subtree: true
+      });
+    }
+    
+    // Observe the "Load More" button specifically
+    const loadMoreButton = document.querySelector('#community_loadmore_btn');
+    if (loadMoreButton) {
+      // Add a direct click event listener to ensure we catch the action
+      loadMoreButton.addEventListener('click', function() {
+        // Wait a bit for the content to load
+        setTimeout(uT, 1000);
+        // And check again after a longer period to catch any delayed loading
+        setTimeout(uT, 3000);
+      });
+      
+      // Also observe the button for changes (like being disabled/re-enabled)
+      observer.observe(loadMoreButton, {
+        attributes: true,
+        childList: true
+      });
+    }
+    
+    // Create a more robust observer for the entire content area to catch any updates
+    const contentObserver = new MutationObserver((mutations) => {
+      setTimeout(uT, 500);
+    });
+    
+    // Observe the main content container for any changes
+    const mainContent = document.querySelector('.forum-page, .forums-section');
+    if (mainContent) {
+      contentObserver.observe(mainContent, {
         childList: true,
         subtree: true
       });
