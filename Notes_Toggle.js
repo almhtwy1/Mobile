@@ -21,7 +21,7 @@
   // Add styles for better mobile experience
   const addStyles = () => {
     const style = document.createElement('style');
-    style.textContent = 
+    style.textContent = `
       /* Base styles for notes card */
       .notes-card {
         background-color: #fff;
@@ -278,7 +278,7 @@
           padding: 5px;
         }
       }
-    ;
+    `;
     document.head.appendChild(style);
   };
 
@@ -300,8 +300,8 @@
     
     // Create FAB
     const fab = document.createElement('div');
-    fab.className = mobile-notes-fab ${hasNotes ? 'has-notes' : ''};
-    fab.innerHTML = <i class="fas fa-sticky-note"></i>;
+    fab.className = `mobile-notes-fab ${hasNotes ? 'has-notes' : ''}`;
+    fab.innerHTML = `<i class="fas fa-sticky-note"></i>`;
     
     // Add click handler
     fab.addEventListener('click', () => {
@@ -361,7 +361,7 @@
     const modal = document.createElement('div');
     modal.className = 'mobile-notes-modal';
     
-    modal.innerHTML = 
+    modal.innerHTML = `
       <div class="mobile-notes-content">
         <div class="mobile-notes-header">
           <div class="mobile-notes-title">
@@ -382,7 +382,7 @@
           </div>
         </div>
       </div>
-    ;
+    `;
     
     // Add to body
     document.body.appendChild(modal);
@@ -475,7 +475,7 @@
     // Create note card
     const noteCard = document.createElement('div');
     noteCard.className = 'notes-card';
-    noteCard.innerHTML = 
+    noteCard.innerHTML = `
       <div class="notes-card-header" id="toggleNote">
         <i class="fas fa-sticky-note notes-icon"></i>
         <span class="notes-title">الملاحظات</span>
@@ -491,7 +491,7 @@
           </div>
         </div>
       </div>
-    ;
+    `;
     
     // Insert before last activity card
     communitySidebar.insertBefore(noteCard, lastActivityCard);
