@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Khamsat Comment Count Fast Updater - Consistent Position
+// @name         Khamsat Comment Count Fast Updater - Live Update
 // @namespace    http://tampermonkey.net/
-// @version      1.3
-// @description  تحديث سريع لعدد التعليقات مع موضع ثابت في جميع أحجام الشاشات
+// @version      1.4
+// @description  تحديث مباشر لعدد التعليقات مع موضع ثابت في جميع أحجام الشاشات
 // @author       Your Name
 // @match        https://khamsat.com/community/requests*
 // @grant        none
@@ -11,63 +11,46 @@
 (async function () {
   'use strict';
 
-  // Helper function to detect mobile devices
-  const isMobile = () => {
-    return window.innerWidth <= 767;
-  };
+  const cacheExpiry = 2 * 60 * 1000; // تقليل مدة التخزين المؤقت إلى دقيقتين
 
-  // Add styles for better mobile experience
+  // إضافة الأنماط لتحسين العرض
   const addStyles = () => {
     const style = document.createElement('style');
     style.textContent = `
-      /* Base styles for comment count */
       .comments-count {
         color: rgb(255, 69, 0);
         font-weight: bold;
         margin-right: 5px;
         transition: all 0.3s ease;
-      }
-      
-      /* Animation for when comment count updates */
-      @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-      }
-      
-      .comments-count.updated {
-        animation: pulse 1s ease-in-out;
-      }
-      
-      /* Consistent styles for all screen sizes */
-      .comments-count {
         display: inline-block;
         font-size: 12px;
         padding: 2px 6px;
         border-radius: 10px;
         background-color: rgba(255, 69, 0, 0.1);
-        color: rgb(255, 69, 0);
-        font-weight: bold;
-        margin-right: 4px;
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+      .comments-count.updated {
+        animation: pulse 1s ease-in-out;
       }
     `;
     document.head.appendChild(style);
   };
 
-  // Process an individual anchor to update its comment count
+  // تحديث عدد التعليقات في الرابط المحدد
   async function updateAnchor(anchor) {
     try {
       const href = anchor.getAttribute('href');
       const url = new URL(href, window.location.origin);
-      
-      // Cache handling
       const cacheKey = `comment_count_${url.pathname}`;
+      const currentTime = Date.now();
       const cachedData = sessionStorage.getItem(cacheKey);
       const cacheTimestamp = parseInt(sessionStorage.getItem(`${cacheKey}_timestamp`) || '0');
-      const currentTime = Date.now();
-      const cacheExpiry = 5 * 60 * 1000; // 5 minutes cache expiry
-      
-      // Use cached data if available and not expired
+
+      // تحديث إذا انتهت صلاحية التخزين المؤقت
       if (cachedData && (currentTime - cacheTimestamp < cacheExpiry)) {
         updateCountDisplay(anchor, cachedData);
         return;
@@ -76,126 +59,72 @@
       const response = await fetch(url.href);
       if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
 
-      const htmlText = await response.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(htmlText, 'text/html');
+      const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
       const header = doc.querySelector('div.card-header.bg-white h3');
-
-      if (!header) {
-        console.warn('Comment header not found for', url.href);
-        return;
-      }
+      if (!header) return;
 
       const match = header.textContent.match(/\((\d+)/);
       if (match) {
         const count = match[1];
-        
-        // Update count display
         updateCountDisplay(anchor, count, true);
-        
-        // Cache the count
         sessionStorage.setItem(cacheKey, count);
         sessionStorage.setItem(`${cacheKey}_timestamp`, currentTime.toString());
-      } else {
-        console.warn('No comment count found in header for', url.href);
       }
     } catch (error) {
-      console.error('Error processing anchor:', anchor, error);
+      console.error('Error updating anchor:', error);
     }
   }
 
-  // Update the comment count display in the DOM
+  // تحديث عرض العدد في DOM
   function updateCountDisplay(anchor, count, isNewData = false) {
-    // Arabic number formatter
-    const formatCount = (num) => {
-      if (num > 99) {
-        return '99+'; // Simplify if count is large
-      }
-      return num;
-    };
-    
-    // Find the details list element
+    const formatCount = (num) => (num > 99 ? '99+' : num);
     const row = anchor.closest('tr') || anchor.closest('.row');
     if (!row) return;
-    
+
     const detailsList = row.querySelector('.details-list');
     if (!detailsList) return;
-    
-    // Look for existing comment count
+
     let existingSpan = detailsList.querySelector('span.comments-count');
-    
     if (existingSpan) {
-      // Update existing count
       existingSpan.textContent = ` (${formatCount(count)} تعليقات)`;
       if (isNewData) {
-        // Add animation class for newly fetched data
         existingSpan.classList.remove('updated');
-        void existingSpan.offsetWidth; // Force reflow to restart animation
+        void existingSpan.offsetWidth;
         existingSpan.classList.add('updated');
       }
     } else {
-      // Create new count element
       const newSpan = document.createElement('span');
       newSpan.className = 'comments-count';
       newSpan.textContent = ` (${formatCount(count)} تعليقات)`;
-      
-      // Always append to details list
       detailsList.appendChild(newSpan);
-      
-      if (isNewData) {
-        newSpan.classList.add('updated');
-      }
+      if (isNewData) newSpan.classList.add('updated');
     }
   }
 
-  // Process all anchors in a container
+  // البحث عن جميع الروابط وتحديثها
   function processAnchors(root = document) {
-    const anchors = root.querySelectorAll('a.ajaxbtn:not([data-processed])');
-    anchors.forEach(anchor => {
+    document.querySelectorAll('a.ajaxbtn:not([data-processed])').forEach(anchor => {
       anchor.setAttribute('data-processed', 'true');
       updateAnchor(anchor);
     });
   }
 
-  // Main initialization function
+  // بدء التنفيذ
   function initialize() {
-    // Add styles
     addStyles();
-    
-    // Process initial anchors
     processAnchors();
-    
-    // MutationObserver to handle dynamically added topics
-    const observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node.nodeType !== Node.ELEMENT_NODE) return;
-          if (node.matches && node.matches('a.ajaxbtn:not([data-processed])')) {
-            node.setAttribute('data-processed', 'true');
-            updateAnchor(node);
-          } else {
-            processAnchors(node);
-          }
-        });
-      });
+
+    // تحديث تلقائي كل 30 ثانية
+    setInterval(processAnchors, 30000);
+
+    // مراقبة تغييرات الصفحة
+    new MutationObserver(() => processAnchors()).observe(document.body, { childList: true, subtree: true });
+
+    // تحديث بعد النقر على زر "عرض المواضيع الأقدم"
+    document.getElementById('community_loadmore_btn')?.addEventListener('click', () => {
+      setTimeout(processAnchors, 1000);
     });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    // Listen for the "عرض المواضيع الأقدم" button
-    const loadMoreButton = document.getElementById('community_loadmore_btn');
-    if (loadMoreButton) {
-      loadMoreButton.addEventListener('click', () => {
-        // Delay to allow new content to be inserted into DOM
-        setTimeout(() => processAnchors(), 500);
-      });
-    }
   }
 
-  // Start when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initialize);
-  } else {
-    initialize();
-  }
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', initialize) : initialize();
 })();
