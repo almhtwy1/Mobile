@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Khamsat Categories Mobile Friendly
 // @namespace    https://khamsat.com/
-// @version      1.1
-// @description  تصنيف طلبات خمسات تلقائياً مع إمكانية التصفية حسب الفئة (نسخة محسنة للجوال)
+// @version      1.2
+// @description  تصنيف طلبات خمسات تلقائياً مع إمكانية التصفية حسب الفئة (نسخة محسنة للجوال بدون أسهم)
 // @author       Your Name
 // @match        https://khamsat.com/community/requests*
 // @icon         https://khamsat.com/favicon.ico
@@ -179,8 +179,6 @@
                 ? ''
                 : 'none';
         });
-
-        // No filter status indicator to update - removed as requested
     };
 
     // Create category filter button
@@ -205,7 +203,7 @@
         const container = document.createElement('div');
         container.id = 'cat-buttons-container';
 
-        // Scrollable inner container for buttons
+        // Scrollable container for buttons (full width without scroll arrows)
         const scrollContainer = document.createElement('div');
         scrollContainer.id = 'cat-buttons-scroll';
 
@@ -225,64 +223,15 @@
             );
         });
 
-        // Add scroll buttons for better mobile navigation
-        const leftScrollBtn = document.createElement('button');
-        leftScrollBtn.id = 'scroll-left';
-        leftScrollBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-        leftScrollBtn.onclick = () => {
-            scrollContainer.scrollBy({ left: -100, behavior: 'smooth' });
-        };
-
-        const rightScrollBtn = document.createElement('button');
-        rightScrollBtn.id = 'scroll-right';
-        rightScrollBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-        rightScrollBtn.onclick = () => {
-            scrollContainer.scrollBy({ left: 100, behavior: 'smooth' });
-        };
-
-        // No active filter indicator - removed as requested
-
-        // Assemble the components
+        // Assemble the components - no scroll buttons
         scrollContainer.appendChild(buttonsContainer);
-        container.appendChild(leftScrollBtn);
         container.appendChild(scrollContainer);
-        container.appendChild(rightScrollBtn);
 
         // Add everything to the page
         const forumElement = document.querySelector('#forum-requests');
         if (forumElement) {
             forumElement.prepend(container);
         }
-
-        // Check for scroll buttons visibility
-        const checkScrollButtons = () => {
-            const hasOverflow = scrollContainer.scrollWidth > scrollContainer.clientWidth;
-            leftScrollBtn.style.display = hasOverflow ? 'flex' : 'none';
-            rightScrollBtn.style.display = hasOverflow ? 'flex' : 'none';
-
-            // Hide left button when scrolled to start
-            if (scrollContainer.scrollLeft <= 0) {
-                leftScrollBtn.style.opacity = '0.5';
-            } else {
-                leftScrollBtn.style.opacity = '1';
-            }
-
-            // Hide right button when scrolled to end
-            if (scrollContainer.scrollLeft + scrollContainer.clientWidth >= scrollContainer.scrollWidth - 5) {
-                rightScrollBtn.style.opacity = '0.5';
-            } else {
-                rightScrollBtn.style.opacity = '1';
-            }
-        };
-
-        // Initialize scroll buttons state
-        setTimeout(checkScrollButtons, 100);
-
-        // Update scroll buttons on scroll
-        scrollContainer.addEventListener('scroll', checkScrollButtons);
-
-        // Update on window resize
-        window.addEventListener('resize', checkScrollButtons);
     };
 
     // Add styles for mobile-friendly layout
@@ -296,6 +245,7 @@
                 align-items: center;
                 width: 100%;
                 direction: rtl;
+                padding: 0 10px;
             }
 
             #cat-buttons-scroll {
@@ -305,13 +255,25 @@
                 overflow-y: hidden;
                 scroll-behavior: smooth;
                 -webkit-overflow-scrolling: touch;
-                scrollbar-width: none; /* Firefox */
-                padding: 5px 0;
+                scrollbar-width: thin;
+                padding: 8px 0;
                 position: relative;
             }
 
+            /* Customize scrollbar for webkit browsers */
             #cat-buttons-scroll::-webkit-scrollbar {
-                display: none; /* Chrome, Safari, Edge */
+                height: 4px;
+                background-color: #f1f1f1;
+                border-radius: 4px;
+            }
+
+            #cat-buttons-scroll::-webkit-scrollbar-thumb {
+                background-color: #888;
+                border-radius: 4px;
+            }
+
+            #cat-buttons-scroll::-webkit-scrollbar-thumb:hover {
+                background-color: #555;
             }
 
             #cat-buttons {
@@ -325,7 +287,7 @@
                 color: #fff;
                 border: none;
                 border-radius: 25px;
-                padding: 6px 12px;
+                padding: 6px 14px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
@@ -335,6 +297,8 @@
                 transition: all 0.3s ease;
                 white-space: nowrap;
                 min-width: max-content;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
             }
 
             .cat-btn.active-cat {
@@ -360,39 +324,14 @@
                 opacity: 0.9;
             }
 
+            .cat-btn:active {
+                transform: translateY(0);
+                opacity: 0.8;
+            }
+
             .cat-btn i {
                 font-size: 12px;
             }
-
-            #scroll-left, #scroll-right {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 28px;
-                height: 28px;
-                background-color: rgba(255, 255, 255, 0.9);
-                border: 1px solid #ddd;
-                border-radius: 50%;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                position: absolute;
-                z-index: 5;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            }
-
-            #scroll-left:hover, #scroll-right:hover {
-                background-color: #f0f0f0;
-            }
-
-            #scroll-left {
-                left: 5px;
-            }
-
-            #scroll-right {
-                right: 5px;
-            }
-
-            /* Filter indicator styles removed as requested */
 
             /* Fix the post details display for mobile */
             @media screen and (max-width: 767px) {
@@ -418,9 +357,23 @@
                 .details-td h3 a + span {
                     margin-top: 3px;
                 }
+                
+                /* Make buttons more touch-friendly on small screens */
+                .cat-btn {
+                    padding: 8px 14px;
+                }
             }
 
-            /* Filter indicator media query removed as requested */
+            /* For very small screens - show only icons */
+            @media screen and (max-width: 480px) {
+                .cat-btn {
+                    padding: 8px 12px;
+                }
+                
+                .cat-btn .cat-text {
+                    font-size: 12px;
+                }
+            }
         `;
         document.head.appendChild(style);
     };
@@ -473,18 +426,41 @@
         }, { passive: true });
     };
 
+    // Scroll to active category to ensure it's visible
+    const scrollToActiveCategory = () => {
+        const scrollContainer = document.getElementById('cat-buttons-scroll');
+        const activeButton = document.querySelector('.cat-btn.active-cat');
+        
+        if (scrollContainer && activeButton) {
+            // Calculate position to center the active button
+            const containerWidth = scrollContainer.offsetWidth;
+            const buttonLeft = activeButton.offsetLeft;
+            const buttonWidth = activeButton.offsetWidth;
+            
+            const scrollPosition = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
+            scrollContainer.scrollTo({
+                left: scrollPosition,
+                behavior: 'smooth'
+            });
+        }
+    };
+
     // Detect device and adapt UI accordingly
     const adaptUIToDevice = () => {
         const isMobile = window.innerWidth <= 767;
 
         // Show only icons on very small screens
-        if (window.innerWidth < 480) {
+        if (window.innerWidth < 400) {
             document.querySelectorAll('.cat-btn .cat-text').forEach(text => {
                 text.style.display = 'none';
             });
 
             document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.style.padding = '6px 8px';
+                btn.style.padding = '8px 10px';
+            });
+        } else {
+            document.querySelectorAll('.cat-btn .cat-text').forEach(text => {
+                text.style.display = '';
             });
         }
 
@@ -530,6 +506,13 @@
                 subtree: true
             });
         }
+
+        // Observe filter changes and scroll to active category
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.cat-btn')) {
+                setTimeout(scrollToActiveCategory, 100);
+            }
+        });
 
         // Handle "Load More" button
         const loadMoreButton = document.getElementById('community_loadmore_btn');
