@@ -111,13 +111,13 @@
         }
     };
 
-    // Prepare regex patterns for each category
+    // Prepare regex patterns for each category (supports prefixes like "ب", "لل", "في")
     Object.values(categories).forEach(category => {
         if (category.keywords.length) {
             category.regex = new RegExp(
-                `(?:^|\\s)(${category.keywords
+                `(?:^|\\s|\\b)(?:ب|لل|في)?(${category.keywords
                     .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-                    .join('|')})(?:\\s|$)`,
+                    .join('|')})(?:\\b|\\s|$)`,
                 'i'
             );
         }
