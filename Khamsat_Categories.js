@@ -281,21 +281,19 @@
         });
     };
 
-    // إنشاء أزرار التصفية المحسنة
+    // إنشاء أزرار التصفية
     const createFilterButtons = () => {
         const container = document.createElement('div');
         container.innerHTML = `
-            <div style="margin:10px 0;overflow-x:auto;white-space:nowrap;padding:8px;background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);border-radius:12px">
-                <div style="display:inline-flex;gap:8px;min-width:max-content;padding:4px">
+            <div style="margin:10px 0;overflow-x:auto;white-space:nowrap;padding:8px">
+                <div style="display:inline-flex;gap:8px;min-width:max-content">
                     ${Object.entries({الكل: {icon: 'fa-list', color: '#6c757d'}, ...smartCategories})
                         .map(([name, data]) => 
                             `<button class="cat-btn${name === 'الكل' ? ' active' : ''}" data-category="${name}" 
-                                style="background:${data.color};color:white;border:none;border-radius:25px;
-                                padding:8px 16px;cursor:pointer;display:flex;align-items:center;gap:5px;
-                                font-size:13px;font-weight:500;transition:all 0.3s ease;white-space:nowrap;
-                                box-shadow:0 2px 4px rgba(0,0,0,0.1);user-select:none">
-                                <i class="fas ${data.icon}" style="font-size:12px"></i>
-                                <span>${name}</span>
+                                style="background:${data.color};color:white;border:none;border-radius:20px;
+                                padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:4px;
+                                font-size:12px;transition:all 0.3s;white-space:nowrap">
+                                <i class="fas ${data.icon}"></i><span>${name}</span>
                             </button>`
                         ).join('')}
                 </div>
@@ -312,26 +310,20 @@
         document.querySelector('#forum-requests')?.prepend(container);
     };
 
-    // إضافة الستايلز المحسنة
+    // إضافة الستايلز
     const addStyles = () => {
         const style = document.createElement('style');
         style.textContent = `
             .cat-btn.active { 
-                transform:translateY(-3px) scale(1.05);
-                box-shadow:0 6px 12px rgba(0,0,0,0.25)!important;
-                border:2px solid rgba(255,255,255,0.3);
+                transform:translateY(-2px);
+                box-shadow:0 4px 6px rgba(0,0,0,0.25)!important;
             }
             .cat-btn:hover { 
                 opacity:0.9;
-                transform:translateY(-2px) scale(1.02);
-                box-shadow:0 4px 8px rgba(0,0,0,0.2);
-            }
-            .cat-btn:active { 
-                transform:translateY(0) scale(0.98);
+                transform:translateY(-1px);
             }
             @media(max-width:768px) { 
-                .cat-btn { padding:6px 12px!important; font-size:12px!important; }
-                .cat-btn span { font-size:11px!important; }
+                .cat-btn span { font-size:11px; }
             }
         `;
         document.head.appendChild(style);
