@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         Khamsat Categories Mobile Friendly
+// @name         Khamsat Categories Smart Filter
 // @namespace    https://khamsat.com/
-// @version      1.2
-// @description  تصنيف طلبات خمسات تلقائياً مع إمكانية التصفية حسب الفئة (نسخة محسنة للجوال بدون أسهم)
-// @author       Your Name
+// @version      2.0
+// @description  تصنيف ذكي لطلبات خمسات باستخدام نظام النقاط المتقدم
+// @author       Smart Filter
 // @match        https://khamsat.com/community/requests*
 // @icon         https://khamsat.com/favicon.ico
 // @grant        none
@@ -12,7 +12,7 @@
 
 (function() {
     'use strict';
-
+    
     // Utility function for debouncing
     const debounce = (fn, delay) => {
         let timer;
@@ -22,88 +22,290 @@
         };
     };
 
-    // Categories configuration
+    // Smart Categories configuration with scoring system
     const categories = {
         تصميم: {
-            keywords: ['تصميم', 'مصممه', 'مصمم', 'لوغو', 'canva', 'شعارات', 'هوية', 'جرافيك', 'شعار', 'تصاميم',
-                      'صور', 'صوره', 'صورة', 'تيكتوك', 'بوستات', 'بوست', 'مسوقين', 'مسوق', 'سوشيال', 'مصممين',
-                      'كانفا', 'ui', 'ux', 'بوستر', 'غلاف', 'بروشور', 'بانر', 'هوية بصرية', 'انفوجرافيك',
-                      'بروفايل', 'اليستريتور', 'فوتوشوب', 'عرض بوربوينت', 'بوث', 'مخطط مفاهيم', 'مصمم ويب'],
+            keywords: [
+                {word: 'تصميم', score: 10},
+                {word: 'لوغو', score: 10},
+                {word: 'شعار', score: 10},
+                {word: 'مصمم', score: 8},
+                {word: 'مصممه', score: 8},
+                {word: 'مصممين', score: 8},
+                {word: 'جرافيك', score: 8},
+                {word: 'هوية', score: 8},
+                {word: 'canva', score: 6},
+                {word: 'كانفا', score: 6},
+                {word: 'شعارات', score: 6},
+                {word: 'تصاميم', score: 6},
+                {word: 'صور', score: 4},
+                {word: 'صوره', score: 4},
+                {word: 'صورة', score: 4},
+                {word: 'بوستات', score: 4},
+                {word: 'بوست', score: 4},
+                {word: 'ui', score: 6},
+                {word: 'ux', score: 6},
+                {word: 'بوستر', score: 5},
+                {word: 'غلاف', score: 5},
+                {word: 'بروشور', score: 5},
+                {word: 'بانر', score: 5},
+                {word: 'انفوجرافيك', score: 7},
+                {word: 'فوتوشوب', score: 6},
+                {word: 'اليستريتور', score: 6}
+            ],
             icon: 'fa-palette',
             color: '#17a2b8'
         },
+        
         كتابة: {
-            keywords: ['كتابة', 'لكتابة', 'لكتابه', 'ترجمة', 'ترجمه', 'محتوى', 'مقالات', 'كتيب', 'مجلة', 'مقال', 'تفريغ', 'كاتب', 'تأليف', 'مدونة',
-                      'نص', 'سيناريو', 'سيو', 'تلخيص', 'سيرة ذاتية', 'بحث', 'تدقيق', 'تحرير', 'صياغة',
-                      'تنسيق', 'بحث أكاديمي', 'مراجعة'],
+            keywords: [
+                {word: 'كتابة', score: 10},
+                {word: 'لكتابة', score: 10},
+                {word: 'لكتابه', score: 10},
+                {word: 'كاتب', score: 8},
+                {word: 'محتوى', score: 8},
+                {word: 'مقالات', score: 8},
+                {word: 'مقال', score: 8},
+                {word: 'ترجمة', score: 9},
+                {word: 'ترجمه', score: 9},
+                {word: 'تفريغ', score: 7},
+                {word: 'تأليف', score: 7},
+                {word: 'مدونة', score: 6},
+                {word: 'نص', score: 5},
+                {word: 'سيناريو', score: 7},
+                {word: 'سيو', score: 6},
+                {word: 'تلخيص', score: 6},
+                {word: 'سيرة ذاتية', score: 6},
+                {word: 'بحث', score: 5},
+                {word: 'تدقيق', score: 6},
+                {word: 'تحرير', score: 6},
+                {word: 'صياغة', score: 6}
+            ],
             icon: 'fa-pen',
             color: '#6610f2'
         },
+        
         تسويق: {
-            keywords: ['تسويق', 'تسويقي', 'تسويقية', 'اعلان', 'اعلانات', 'حملات', 'ads', 'seo', 'marketing',
-                      'فيسبوك', 'انستقرام', 'سناب', 'التسويق', 'الإعلانية', 'للتسويق', 'ادارة حسابات',
-                      'براند', 'مبيعات', 'ترويج', 'جوجل أدز', 'ادسنس', 'حملات ممولة', 'cpa', 'bing',
-                      'استراتيجية', 'guest post', 'تسويق عقاري', 'سوشيال ميديا', 'تيك توك'],
+            keywords: [
+                {word: 'تسويق', score: 10},
+                {word: 'تسويقي', score: 10},
+                {word: 'تسويقية', score: 10},
+                {word: 'التسويق', score: 10},
+                {word: 'للتسويق', score: 10},
+                {word: 'اعلان', score: 8},
+                {word: 'اعلانات', score: 8},
+                {word: 'حملات', score: 8},
+                {word: 'ads', score: 7},
+                {word: 'marketing', score: 9},
+                {word: 'فيسبوك', score: 6},
+                {word: 'انستقرام', score: 6},
+                {word: 'سناب', score: 6},
+                {word: 'ادارة حسابات', score: 7},
+                {word: 'مبيعات', score: 6},
+                {word: 'ترويج', score: 6},
+                {word: 'جوجل أدز', score: 7},
+                {word: 'ادسنس', score: 6},
+                {word: 'حملات ممولة', score: 8},
+                {word: 'سوشيال ميديا', score: 7},
+                {word: 'تيك توك', score: 5}
+            ],
             icon: 'fa-bullhorn',
             color: '#ffc107'
         },
+        
         برمجة: {
-            keywords: ['برمجة', 'تطوير', 'موقع', 'مواقع', 'تطبيق', 'تطبيقات', 'tabby', 'متجر', 'اندرويد',
-                      'ios', 'wordpress', 'بوت', 'مبرمج', 'php', 'ويب', 'فايرفوكس', 'قوقل', 'متصفح',
-                      'ايفون', 'أيفون', 'chrome', 'extension', 'بايثون', 'js', 'تكويد', 'فلاتر', 'لارافل',
-                      'HTML', 'CSS', 'JavaScript', 'Objective-C', 'Xcode', 'Websocket', 'API', 'Frontend',
-                      'Backend', 'SQL', 'VB.NET', 'Postgres', 'Supabase', 'ريسكين', 'Figma'],
+            keywords: [
+                {word: 'برمجة', score: 10},
+                {word: 'مبرمج', score: 10},
+                {word: 'تطوير', score: 9},
+                {word: 'تطبيق', score: 8},
+                {word: 'تطبيقات', score: 8},
+                {word: 'موقع', score: 8},
+                {word: 'مواقع', score: 8},
+                {word: 'ويب', score: 7},
+                {word: 'اندرويد', score: 7},
+                {word: 'ios', score: 7},
+                {word: 'wordpress', score: 6},
+                {word: 'بوت', score: 6},
+                {word: 'php', score: 6},
+                {word: 'javascript', score: 6},
+                {word: 'js', score: 5},
+                {word: 'html', score: 5},
+                {word: 'css', score: 5},
+                {word: 'بايثون', score: 6},
+                {word: 'فلاتر', score: 6},
+                {word: 'لارافل', score: 6},
+                {word: 'api', score: 6},
+                {word: 'تكويد', score: 7},
+                {word: 'كود', score: 6},
+                {word: 'متجر', score: 5}
+            ],
             icon: 'fa-code',
             color: '#28a745'
         },
+        
         فيديو: {
-            keywords: ['فيديو', 'موشن', 'مونتاج', 'انيميشن', 'فيلم', 'الفيديو', 'الفيديوهات', 'فيديوهات',
-                      'فديوهات', 'انترو', 'تحريك', 'animation', 'edit', 'اخراج', 'مونتير', 'تعديل ألوان',
-                      'Video', 'فلاتر', 'ترانزيشن', 'إخراج سينمائي', 'تحرير فيديو', 'إعلان مصوَّر',
-                      'Videographer'],
+            keywords: [
+                {word: 'فيديو', score: 10},
+                {word: 'الفيديو', score: 10},
+                {word: 'فيديوهات', score: 9},
+                {word: 'الفيديوهات', score: 9},
+                {word: 'مونتاج', score: 10},
+                {word: 'مونتير', score: 9},
+                {word: 'موشن', score: 8},
+                {word: 'انيميشن', score: 8},
+                {word: 'animation', score: 8},
+                {word: 'فيلم', score: 7},
+                {word: 'انترو', score: 7},
+                {word: 'تحريك', score: 7},
+                {word: 'edit', score: 6},
+                {word: 'اخراج', score: 6},
+                {word: 'تعديل ألوان', score: 6},
+                {word: 'ترانزيشن', score: 5},
+                {word: 'videographer', score: 7}
+            ],
             icon: 'fa-video',
             color: '#dc3545'
         },
+        
         هندسة: {
-            keywords: ['هندسة', 'معمار', 'مدني', 'خريطة', 'ميكانيكي', 'معماري', 'مخطط', 'مهندس',
-                      'مشروع هندسي', 'خرائط', 'تصميم داخلي', 'ديكور', 'أوتوكاد', 'ريفيت', '3ds Max',
-                      'SketchUp', 'مخطط سلامة', 'ديناميكا حرارية', 'هندسي'],
+            keywords: [
+                {word: 'هندسة', score: 10},
+                {word: 'مهندس', score: 9},
+                {word: 'معمار', score: 8},
+                {word: 'معماري', score: 8},
+                {word: 'مدني', score: 7},
+                {word: 'خريطة', score: 6},
+                {word: 'خرائط', score: 6},
+                {word: 'مخطط', score: 7},
+                {word: 'ميكانيكي', score: 7},
+                {word: 'تصميم داخلي', score: 7},
+                {word: 'ديكور', score: 6},
+                {word: 'أوتوكاد', score: 7},
+                {word: 'ريفيت', score: 7},
+                {word: 'sketchup', score: 6},
+                {word: '3ds max', score: 6}
+            ],
             icon: 'fa-building',
             color: '#8e44ad'
         },
+        
         أعمال: {
-            keywords: ['اعمال', 'ادارة', 'محاسبة', 'مالية', 'قانونية', 'دراسة جدوى', 'خطة عمل',
-                      'مشروع', 'وظائف', 'موظف', 'سكرتير', 'موظفين', 'مندوب', 'تمويل', 'تسعير',
-                      'مبيعات', 'إدارة مشاريع', 'موارد بشرية'],
+            keywords: [
+                {word: 'اعمال', score: 8},
+                {word: 'ادارة', score: 7},
+                {word: 'محاسبة', score: 8},
+                {word: 'مالية', score: 7},
+                {word: 'قانونية', score: 7},
+                {word: 'دراسة جدوى', score: 9},
+                {word: 'خطة عمل', score: 8},
+                {word: 'مشروع', score: 6},
+                {word: 'موظف', score: 5},
+                {word: 'موظفين', score: 5},
+                {word: 'سكرتير', score: 6},
+                {word: 'مندوب', score: 5},
+                {word: 'تمويل', score: 6},
+                {word: 'تسعير', score: 6},
+                {word: 'موارد بشرية', score: 7}
+            ],
             icon: 'fa-briefcase',
             color: '#fd7e14'
         },
+        
         صوتيات: {
-            keywords: ['صوت', 'تعليق', 'موسيقى', 'هندسة صوت', 'تلحين', 'فويس', 'اغنية', 'إنشاد',
-                      'إنشودة', 'انشودة', 'إلقاء', 'فويس أوفر', 'صوتي', 'دبلجة', 'بودكاست'],
+            keywords: [
+                {word: 'صوت', score: 9},
+                {word: 'صوتي', score: 9},
+                {word: 'تعليق', score: 8},
+                {word: 'فويس', score: 8},
+                {word: 'موسيقى', score: 7},
+                {word: 'هندسة صوت', score: 9},
+                {word: 'تلحين', score: 7},
+                {word: 'اغنية', score: 6},
+                {word: 'إنشاد', score: 6},
+                {word: 'انشودة', score: 6},
+                {word: 'إلقاء', score: 6},
+                {word: 'فويس أوفر', score: 8},
+                {word: 'دبلجة', score: 7},
+                {word: 'بودكاست', score: 7}
+            ],
             icon: 'fa-microphone',
             color: '#FF80AB'
         },
+        
         تعليم: {
-            keywords: ['تعليم', 'الواجب', 'تدريب', 'تعليمية', 'دروس', 'مدرس', 'تدريبية', 'حل واجبات', 'صوتيه', 'كورس', 'معلم',
-                      'قرآن', 'دورات', 'شرح', 'آيلتس', 'تدريس', 'خصوصي', 'منصة تعليمية', 'التعلم',
-                      'معلمة', 'تعليم', 'اختبارات', 'مساعدة واجبات', 'أكاديمي'],
+            keywords: [
+                {word: 'تعليم', score: 10},
+                {word: 'التعليم', score: 10},
+                {word: 'تعليمية', score: 9},
+                {word: 'مدرس', score: 8},
+                {word: 'معلم', score: 8},
+                {word: 'معلمة', score: 8},
+                {word: 'تدريب', score: 7},
+                {word: 'تدريبية', score: 7},
+                {word: 'دروس', score: 7},
+                {word: 'كورس', score: 7},
+                {word: 'دورات', score: 7},
+                {word: 'شرح', score: 6},
+                {word: 'تدريس', score: 7},
+                {word: 'خصوصي', score: 6},
+                {word: 'الواجب', score: 6},
+                {word: 'حل واجبات', score: 7},
+                {word: 'آيلتس', score: 6},
+                {word: 'قرآن', score: 5}
+            ],
             icon: 'fa-chalkboard-teacher',
             color: '#FA8072'
         },
+        
         بيانات: {
-            keywords: ['بيانات', 'البيانات', 'ادخال', 'تنظيف', 'تحليل', 'جمع', 'scraping', 'اكسل', 'إكسل',
-                       'pdf', 'sql', 'database', 'جوجل شيت', 'SharePoint', 'VBA', 'جدول ديناميكي',
-                       'تنسيق ملفات', 'دمج بيانات', 'Pivot', 'CSV'],
+            keywords: [
+                {word: 'بيانات', score: 10},
+                {word: 'البيانات', score: 10},
+                {word: 'ادخال', score: 8},
+                {word: 'تنظيف', score: 7},
+                {word: 'تحليل', score: 8},
+                {word: 'جمع', score: 6},
+                {word: 'scraping', score: 8},
+                {word: 'اكسل', score: 7},
+                {word: 'إكسل', score: 7},
+                {word: 'excel', score: 7},
+                {word: 'pdf', score: 5},
+                {word: 'sql', score: 7},
+                {word: 'database', score: 8},
+                {word: 'جوجل شيت', score: 6},
+                {word: 'sharepoint', score: 6},
+                {word: 'vba', score: 6},
+                {word: 'pivot', score: 6},
+                {word: 'csv', score: 5}
+            ],
             icon: 'fa-database',
             color: '#FF6347'
         },
+        
         'أسلوب حياة': {
-            keywords: ['حياة', 'لياقة', 'ارشاد', 'استشارة', 'طبخ', 'صحة', 'هواية', 'ترفيه',
-                      'شخصي', 'رشاقة', 'جمال', 'موضة', 'نصائح', 'عناية', 'وصفات طبخ', 'تخسيس'],
+            keywords: [
+                {word: 'حياة', score: 7},
+                {word: 'لياقة', score: 8},
+                {word: 'ارشاد', score: 7},
+                {word: 'استشارة', score: 7},
+                {word: 'طبخ', score: 6},
+                {word: 'صحة', score: 6},
+                {word: 'هواية', score: 5},
+                {word: 'ترفيه', score: 5},
+                {word: 'شخصي', score: 5},
+                {word: 'رشاقة', score: 6},
+                {word: 'جمال', score: 5},
+                {word: 'موضة', score: 5},
+                {word: 'نصائح', score: 5},
+                {word: 'عناية', score: 5},
+                {word: 'وصفات طبخ', score: 6},
+                {word: 'تخسيس', score: 6}
+            ],
             icon: 'fa-heart',
             color: '#20B2AA'
         },
+        
         أخرى: {
             keywords: [],
             icon: 'fa-folder-open',
@@ -111,47 +313,67 @@
         }
     };
 
-    // Prepare regex patterns for each category (supports prefixes like "ب", "لل", "في")
-    Object.values(categories).forEach(category => {
-        if (category.keywords.length) {
-            category.regex = new RegExp(
-                `(?:^|\\s|\\b)(?:ب|لل|في)?(${category.keywords
-                    .map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-                    .join('|')})(?:\\b|\\s|$)`,
-                'i'
-            );
-        }
-    });
+    // Smart categorization function using scoring system
+    const calculateCategoryScore = (text) => {
+        const scores = {};
+        const lowerText = text.toLowerCase();
+        
+        Object.entries(categories).forEach(([categoryName, category]) => {
+            scores[categoryName] = 0;
+            
+            category.keywords.forEach(keywordObj => {
+                // Check for exact word match and partial matches
+                if (lowerText.includes(keywordObj.word.toLowerCase())) {
+                    scores[categoryName] += keywordObj.score;
+                    
+                    // Bonus points for exact word boundaries
+                    const wordRegex = new RegExp(`\\b${keywordObj.word.toLowerCase()}\\b`, 'i');
+                    if (wordRegex.test(lowerText)) {
+                        scores[categoryName] += Math.floor(keywordObj.score * 0.3);
+                    }
+                }
+            });
+        });
+        
+        return scores;
+    };
 
-    // Add category icons to requests
+    // Get the best matching category
+    const getBestCategory = (text) => {
+        const scores = calculateCategoryScore(text);
+        let bestCategory = 'أخرى';
+        let highestScore = 0;
+        
+        Object.entries(scores).forEach(([category, score]) => {
+            if (category !== 'أخرى' && score > highestScore) {
+                highestScore = score;
+                bestCategory = category;
+            }
+        });
+        
+        // Minimum score threshold to avoid false positives
+        return highestScore >= 4 ? bestCategory : 'أخرى';
+    };
+
+    // Add category icons to requests with smart classification
     const addCategoryIcons = () => {
         document.querySelectorAll('#forums_table tr.forum_post:not([data-categorized])').forEach(row => {
             const link = row.querySelector('.details-td h3 a');
             if (!link) return;
 
-            const text = link.textContent.toLowerCase();
-            const matchedCategories = Object.entries(categories)
-                .filter(([name, cat]) => name !== 'أخرى' && cat.regex?.test(text))
-                .map(([name]) => name);
-
-            if (!matchedCategories.length) {
-                matchedCategories.push('أخرى');
-            }
+            const text = link.textContent;
+            const bestCategory = getBestCategory(text);
+            const matchedCategories = [bestCategory];
 
             const iconSpan = document.createElement('span');
             iconSpan.style.cssText = 'display:inline-flex;gap:5px;align-items:center;padding-right:5px';
 
-            // Limit to max 3 categories for better mobile display
-            const displayCategories = matchedCategories.slice(0, 3);
-
-            displayCategories.forEach(categoryName => {
-                const category = categories[categoryName];
-                const icon = document.createElement('i');
-                icon.className = `fas ${category.icon}`;
-                icon.title = categoryName;
-                icon.style.cssText = `color:${category.color};font-size:14px`;
-                iconSpan.appendChild(icon);
-            });
+            const category = categories[bestCategory];
+            const icon = document.createElement('i');
+            icon.className = `fas ${category.icon}`;
+            icon.title = bestCategory;
+            icon.style.cssText = `color:${category.color};font-size:14px`;
+            iconSpan.appendChild(icon);
 
             link.after(iconSpan);
             row.dataset.categories = matchedCategories.join(',');
@@ -163,7 +385,7 @@
     let currentCategory = 'الكل';
     const filterPosts = (category) => {
         currentCategory = category;
-
+        
         // Update active state on buttons
         document.querySelectorAll('.cat-btn').forEach(btn => {
             if (btn.getAttribute('data-category') === category) {
@@ -189,25 +411,22 @@
         button.innerHTML = `<i class="fas ${icon}"></i> <span class="cat-text">${name}</span>`;
         button.style.backgroundColor = color;
         button.onclick = onClick;
-
-        // Set first button (الكل) as active by default
+        
         if (name === 'الكل') {
             button.classList.add('active-cat');
         }
-
+        
         return button;
     };
 
-    // Add category filter buttons in a scrollable container
+    // Add category filter buttons
     const addCategoryButtons = () => {
         const container = document.createElement('div');
         container.id = 'cat-buttons-container';
 
-        // Scrollable container for buttons (full width without scroll arrows)
         const scrollContainer = document.createElement('div');
         scrollContainer.id = 'cat-buttons-scroll';
 
-        // Create buttons container
         const buttonsContainer = document.createElement('div');
         buttonsContainer.id = 'cat-buttons';
 
@@ -223,11 +442,9 @@
             );
         });
 
-        // Assemble the components - no scroll buttons
         scrollContainer.appendChild(buttonsContainer);
         container.appendChild(scrollContainer);
 
-        // Add everything to the page
         const forumElement = document.querySelector('#forum-requests');
         if (forumElement) {
             forumElement.prepend(container);
@@ -247,7 +464,7 @@
                 direction: rtl;
                 padding: 0 10px;
             }
-
+            
             #cat-buttons-scroll {
                 display: flex;
                 width: 100%;
@@ -259,30 +476,29 @@
                 padding: 8px 0;
                 position: relative;
             }
-
-            /* Customize scrollbar for webkit browsers */
+            
             #cat-buttons-scroll::-webkit-scrollbar {
                 height: 4px;
                 background-color: #f1f1f1;
                 border-radius: 4px;
             }
-
+            
             #cat-buttons-scroll::-webkit-scrollbar-thumb {
                 background-color: #888;
                 border-radius: 4px;
             }
-
+            
             #cat-buttons-scroll::-webkit-scrollbar-thumb:hover {
                 background-color: #555;
             }
-
+            
             #cat-buttons {
                 display: flex;
                 gap: 8px;
                 min-width: max-content;
                 padding: 0 4px;
             }
-
+            
             .cat-btn {
                 color: #fff;
                 border: none;
@@ -300,13 +516,13 @@
                 user-select: none;
                 -webkit-tap-highlight-color: transparent;
             }
-
+            
             .cat-btn.active-cat {
                 transform: translateY(-2px);
                 box-shadow: 0 4px 6px rgba(0,0,0,0.25);
                 position: relative;
             }
-
+            
             .cat-btn.active-cat::after {
                 content: '';
                 position: absolute;
@@ -318,53 +534,49 @@
                 background-color: currentColor;
                 border-radius: 3px;
             }
-
+            
             .cat-btn:hover {
                 transform: translateY(-1px);
                 opacity: 0.9;
             }
-
+            
             .cat-btn:active {
                 transform: translateY(0);
                 opacity: 0.8;
             }
-
+            
             .cat-btn i {
                 font-size: 12px;
             }
-
-            /* Fix the post details display for mobile */
+            
             @media screen and (max-width: 767px) {
                 .details-td h3 {
                     font-size: 14px;
                     line-height: 1.3;
                     margin-bottom: 5px;
                 }
-
+                
                 .details-td .date {
                     font-size: 11px;
                 }
-
+                
                 .author-td {
                     padding: 5px !important;
                 }
-
+                
                 .author-td .author {
                     font-size: 12px;
                 }
-
-                /* Fix for icons on mobile */
+                
                 .details-td h3 a + span {
                     margin-top: 3px;
                 }
                 
-                /* Make buttons more touch-friendly on small screens */
                 .cat-btn {
                     padding: 8px 14px;
                 }
             }
-
-            /* For very small screens - show only icons */
+            
             @media screen and (max-width: 480px) {
                 .cat-btn {
                     padding: 8px 12px;
@@ -378,7 +590,7 @@
         document.head.appendChild(style);
     };
 
-    // Add touch scroll support for the category filters
+    // Add touch scroll support
     const addTouchScroll = () => {
         const scrollContainer = document.getElementById('cat-buttons-scroll');
         if (!scrollContainer) return;
@@ -408,11 +620,10 @@
             if (!isDown) return;
             e.preventDefault();
             const x = e.pageX - scrollContainer.offsetLeft;
-            const walk = (x - startX) * 2; // Scroll speed
+            const walk = (x - startX) * 2;
             scrollContainer.scrollLeft = scrollLeft - walk;
         });
 
-        // For touch devices
         scrollContainer.addEventListener('touchstart', (e) => {
             startX = e.touches[0].pageX - scrollContainer.offsetLeft;
             scrollLeft = scrollContainer.scrollLeft;
@@ -426,13 +637,12 @@
         }, { passive: true });
     };
 
-    // Scroll to active category to ensure it's visible
+    // Scroll to active category
     const scrollToActiveCategory = () => {
         const scrollContainer = document.getElementById('cat-buttons-scroll');
         const activeButton = document.querySelector('.cat-btn.active-cat');
         
         if (scrollContainer && activeButton) {
-            // Calculate position to center the active button
             const containerWidth = scrollContainer.offsetWidth;
             const buttonLeft = activeButton.offsetLeft;
             const buttonWidth = activeButton.offsetWidth;
@@ -445,16 +655,14 @@
         }
     };
 
-    // Detect device and adapt UI accordingly
+    // Adapt UI to device
     const adaptUIToDevice = () => {
         const isMobile = window.innerWidth <= 767;
-
-        // Show only icons on very small screens
+        
         if (window.innerWidth < 400) {
             document.querySelectorAll('.cat-btn .cat-text').forEach(text => {
                 text.style.display = 'none';
             });
-
             document.querySelectorAll('.cat-btn').forEach(btn => {
                 btn.style.padding = '8px 10px';
             });
@@ -463,12 +671,11 @@
                 text.style.display = '';
             });
         }
-
-        // Add a class to body for additional CSS targeting
+        
         document.body.classList.toggle('khamsat-mobile', isMobile);
     };
 
-    // Initialize observers and event listeners
+    // Initialize the script
     const initialize = () => {
         // Ensure Font Awesome is loaded
         if (!document.querySelector('link[href*="font-awesome"]')) {
@@ -478,27 +685,20 @@
             document.head.appendChild(link);
         }
 
-        // Add styles
         addStyles();
-
-        // Add category buttons
         addCategoryButtons();
-
-        // Add touch scroll support
         addTouchScroll();
-
-        // Adapt UI to device
         adaptUIToDevice();
         window.addEventListener('resize', adaptUIToDevice);
 
-        // Initial categorization of existing posts
+        // Initial categorization
         addCategoryIcons();
 
         // Observe table for new posts
         const tableObserver = new MutationObserver(() => {
             debounce(addCategoryIcons, 300)();
         });
-
+        
         const forumTable = document.querySelector('#forums_table tbody');
         if (forumTable) {
             tableObserver.observe(forumTable, {
@@ -507,7 +707,7 @@
             });
         }
 
-        // Observe filter changes and scroll to active category
+        // Handle category button clicks
         document.addEventListener('click', (e) => {
             if (e.target.closest('.cat-btn')) {
                 setTimeout(scrollToActiveCategory, 100);
@@ -526,7 +726,7 @@
         }
     };
 
-    // Start script when page is loaded
+    // Start the script
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initialize);
     } else {
