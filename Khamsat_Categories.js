@@ -150,7 +150,7 @@
             const categoryData = smartCategories[category];
             
             const iconSpan = document.createElement('span');
-            iconSpan.style.cssText = 'display:inline-flex;gap:5px;align-items:center;padding-right:5px';
+            iconSpan.style.cssText = 'display:inline-flex;gap:5px;align-items:center;margin-right:8px;margin-left:5px';
             
             const icon = document.createElement('i');
             icon.className = `fas ${categoryData.icon}`;
