@@ -149,12 +149,16 @@
             const category = classifyText(link.textContent);
             const categoryData = smartCategories[category];
             
+            const iconSpan = document.createElement('span');
+            iconSpan.style.cssText = 'display:inline-flex;gap:5px;align-items:center;padding-right:5px';
+            
             const icon = document.createElement('i');
             icon.className = `fas ${categoryData.icon}`;
-            icon.style.cssText = `color:${categoryData.color};font-size:14px;margin-left:8px`;
+            icon.style.cssText = `color:${categoryData.color};font-size:14px`;
             icon.title = category;
             
-            link.after(icon);
+            iconSpan.appendChild(icon);
+            link.after(iconSpan);
             row.dataset.categories = category;
             row.dataset.categorized = 'true';
         });
