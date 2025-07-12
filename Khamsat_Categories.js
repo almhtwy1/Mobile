@@ -82,25 +82,25 @@
         },
         'خدمات رقمية': {
             exact: ['خدمة عملاء', 'دعم فني', 'مساعد افتراضي', 'مساعد شخصي', 'سكرتير', 'سكرتيرة'],
-            high: ['ادارة حسابات', 'نشر اعلانات', 'رد على العملاء', 'خدمات عملاء', 'support', 'مندوب'],
-            medium: ['تشغيل', 'ادارة صفحات', 'متابعة', 'رد', 'اجابة', 'استقبال', 'تواصل'],
-            low: ['عن بعد', 'remote', 'اونلاين', 'online', 'افتراضي', 'virtual', 'ديجيتال'],
+            high: ['ادارة حسابات', 'نشر اعلانات', 'رد على العملاء', 'خدمات عملاء', 'support', 'استقبال'],
+            medium: ['تشغيل', 'ادارة صفحات', 'متابعة', 'رد', 'اجابة', 'تواصل', 'موظف خدمة'],
+            low: ['عن بعد', 'remote', 'اونلاين', 'online', 'افتراضي', 'virtual', 'chat'],
             icon: 'fa-headset',
             color: '#6f42c1'
         },
         استشارات: {
-            exact: ['استشارة', 'استشاري', 'مستشار', 'consulting', 'مشورة', 'نصيحة'],
-            high: ['قانونية', 'قانوني', 'محامي', 'legal', 'مالية', 'مال', 'تجارية', 'نفسية'],
-            medium: ['دراسة جدوى', 'خطة عمل', 'business plan', 'تحليل', 'تقييم', 'مراجعة'],
+            exact: ['استشارة', 'استشاري', 'مستشار', 'consulting', 'مشورة', 'قانونية', 'محامي'],
+            high: ['قانوني', 'legal', 'نفسية', 'دراسة جدوى', 'خطة عمل', 'business plan'],
+            medium: ['تحليل', 'تقييم', 'مراجعة', 'تجارية', 'مالية', 'استشارات'],
             low: ['شخصية', 'حياتية', 'مهنية', 'تطوير الذات', 'ارشاد', 'توجيه'],
             icon: 'fa-user-tie',
             color: '#e83e8c'
         },
         'خدمات تقنية': {
-            exact: ['صيانة', 'اصلاح', 'حل مشكلة', 'مشاكل تقنية', 'دعم تقني', 'تقني'],
-            high: ['رفع تطبيق', 'نشر تطبيق', 'اعداد', 'تثبيت', 'install', 'setup', 'تكوين'],
-            medium: ['سيرفر', 'server', 'استضافة', 'hosting', 'امان', 'security', 'backup'],
-            low: ['فحص', 'اختبار', 'test', 'debug', 'troubleshooting', 'maintenance'],
+            exact: ['صيانة', 'اصلاح', 'حل مشكلة', 'مشاكل تقنية', 'دعم تقني', 'تقني', 'مشكل'],
+            high: ['رفع تطبيق', 'نشر تطبيق', 'اعداد', 'تثبيت', 'install', 'setup', 'تكوين', 'إعداد'],
+            medium: ['سيرفر', 'server', 'استضافة', 'hosting', 'امان', 'security', 'backup', 'vps', 'ssl'],
+            low: ['فحص', 'اختبار', 'test', 'debug', 'troubleshooting', 'maintenance', 'تحديث', 'upgrade'],
             icon: 'fa-tools',
             color: '#fd7e14'
         },
@@ -195,15 +195,22 @@
             });
         });
         
-        // Handle specific combinations
+        // Handle specific combinations and exclusions
         if (normalizedText.includes('موشن جرافيك') || normalizedText.includes('motion')) {
-            scores['فيديو'] += 10;
+            scores['فيديو'] += 12;
             scores['تصميم'] += 5;
         }
         
         if (normalizedText.includes('ui') || normalizedText.includes('ux')) {
             scores['تصميم'] += 12;
             scores['برمجة'] += 3;
+        }
+        
+        // Technical issues and setup should be خدمات تقنية not خدمات رقمية
+        if (normalizedText.includes('مشكل') || normalizedText.includes('مشكلة') || 
+            normalizedText.includes('اعداد') || normalizedText.includes('تثبيت')) {
+            scores['خدمات تقنية'] += 8;
+            scores['خدمات رقمية'] = Math.max(0, scores['خدمات رقمية'] - 5);
         }
         
         // Boost specific categories for common terms
@@ -215,16 +222,23 @@
             scores['تسويق'] += 12;
         }
         
+        // Data analysis should be بيانات not استشارات
+        if (normalizedText.includes('تحليل') && (normalizedText.includes('بيانات') || 
+            normalizedText.includes('احصائي') || normalizedText.includes('اكسل'))) {
+            scores['بيانات'] += 10;
+            scores['استشارات'] = Math.max(0, scores['استشارات'] - 3);
+        }
+        
         // Get best matches
         const sortedScores = Object.entries(scores)
             .filter(([_, score]) => score > 0)
             .sort(([,a], [,b]) => b - a);
         
-        // Return categories with significant scores
-        const threshold = Math.max(6, sortedScores[0]?.[1] * 0.3 || 0);
+        // Return single category for clarity (max 1 instead of 2)
+        const threshold = Math.max(8, sortedScores[0]?.[1] * 0.4 || 0);
         const result = sortedScores
             .filter(([_, score]) => score >= threshold)
-            .slice(0, 2) // Limit to max 2 categories for clarity
+            .slice(0, 1) // Single category only for better precision
             .map(([cat, _]) => cat);
         
         return result.length > 0 ? result : ['أخرى'];
