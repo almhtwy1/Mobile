@@ -222,7 +222,7 @@
         return result.length > 0 ? result : ['أخرى'];
     };
 
-    // Add category icons (optimized)
+    // Add category icons (restored to original design)
     const addCategoryIcons = () => {
         document.querySelectorAll('#forums_table tr.forum_post:not([data-categorized])').forEach(row => {
             const link = row.querySelector('.details-td h3 a');
@@ -231,14 +231,14 @@
             const matchedCategories = classifyText(link.textContent);
             
             const iconSpan = document.createElement('span');
-            iconSpan.style.cssText = 'display:inline-flex;gap:4px;align-items:center;padding-right:6px;flex-wrap:wrap';
+            iconSpan.style.cssText = 'display:inline-flex;gap:5px;align-items:center;padding-right:5px';
 
-            matchedCategories.forEach(categoryName => {
+            matchedCategories.slice(0, 3).forEach(categoryName => {
                 const category = categories[categoryName];
                 const icon = document.createElement('i');
                 icon.className = `fas ${category.icon}`;
                 icon.title = categoryName;
-                icon.style.cssText = `color:${category.color};font-size:13px;text-shadow:0 1px 1px rgba(0,0,0,0.2)`;
+                icon.style.cssText = `color:${category.color};font-size:14px`;
                 iconSpan.appendChild(icon);
             });
 
@@ -301,7 +301,7 @@
         if (forumElement) forumElement.prepend(container);
     };
 
-    // Styles (enhanced)
+    // Styles (restored to original with improvements)
     const addStyles = () => {
         const style = document.createElement('style');
         style.textContent = `
@@ -313,10 +313,8 @@
                 width: 100%;
                 direction: rtl;
                 padding: 0 10px;
-                background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
+
             #cat-buttons-scroll {
                 display: flex;
                 width: 100%;
@@ -325,106 +323,122 @@
                 scroll-behavior: smooth;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: thin;
-                padding: 10px 0;
+                padding: 8px 0;
+                position: relative;
             }
+
+            /* Customize scrollbar for webkit browsers */
             #cat-buttons-scroll::-webkit-scrollbar {
                 height: 4px;
-                background-color: rgba(0,0,0,0.1);
+                background-color: #f1f1f1;
                 border-radius: 4px;
             }
+
             #cat-buttons-scroll::-webkit-scrollbar-thumb {
-                background-color: rgba(0,0,0,0.3);
+                background-color: #888;
                 border-radius: 4px;
             }
+
+            #cat-buttons-scroll::-webkit-scrollbar-thumb:hover {
+                background-color: #555;
+            }
+
             #cat-buttons {
                 display: flex;
-                gap: 6px;
+                gap: 8px;
                 min-width: max-content;
                 padding: 0 4px;
             }
+
             .cat-btn {
                 color: #fff;
                 border: none;
-                border-radius: 20px;
-                padding: 8px 16px;
+                border-radius: 25px;
+                padding: 6px 14px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                gap: 6px;
+                gap: 5px;
                 font-size: 13px;
-                font-weight: 500;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-                transition: all 0.2s ease;
+                box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+                transition: all 0.3s ease;
                 white-space: nowrap;
                 min-width: max-content;
                 user-select: none;
                 -webkit-tap-highlight-color: transparent;
-                position: relative;
-                overflow: hidden;
             }
-            .cat-btn::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-                transition: left 0.5s;
-            }
-            .cat-btn:hover::before {
-                left: 100%;
-            }
+
             .cat-btn.active-cat {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                filter: brightness(1.1);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+                position: relative;
             }
+
             .cat-btn.active-cat::after {
                 content: '';
                 position: absolute;
-                bottom: -2px;
+                bottom: -4px;
                 left: 50%;
                 transform: translateX(-50%);
-                width: 60%;
-                height: 2px;
-                background-color: rgba(255,255,255,0.8);
-                border-radius: 2px;
+                width: 30%;
+                height: 3px;
+                background-color: currentColor;
+                border-radius: 3px;
             }
+
             .cat-btn:hover {
                 transform: translateY(-1px);
-                filter: brightness(1.05);
+                opacity: 0.9;
             }
+
             .cat-btn:active {
                 transform: translateY(0);
+                opacity: 0.8;
             }
+
             .cat-btn i {
                 font-size: 12px;
-                filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
             }
-            .details-td h3 a + span i {
-                filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
-            }
+
+            /* Fix the post details display for mobile */
             @media screen and (max-width: 767px) {
-                .cat-btn {
-                    padding: 7px 12px;
+                .details-td h3 {
+                    font-size: 14px;
+                    line-height: 1.3;
+                    margin-bottom: 5px;
+                }
+
+                .details-td .date {
+                    font-size: 11px;
+                }
+
+                .author-td {
+                    padding: 5px !important;
+                }
+
+                .author-td .author {
                     font-size: 12px;
                 }
-                #cat-buttons-container {
-                    margin: 8px 0;
-                    padding: 0 8px;
+
+                /* Fix for icons on mobile */
+                .details-td h3 a + span {
+                    margin-top: 3px;
+                }
+                
+                /* Make buttons more touch-friendly on small screens */
+                .cat-btn {
+                    padding: 8px 14px;
                 }
             }
+
+            /* For very small screens - show only icons */
             @media screen and (max-width: 480px) {
-                .cat-btn .cat-text {
-                    display: none;
-                }
                 .cat-btn {
-                    padding: 8px;
-                    border-radius: 50%;
-                    width: 36px;
-                    height: 36px;
-                    justify-content: center;
+                    padding: 8px 12px;
+                }
+                
+                .cat-btn .cat-text {
+                    font-size: 12px;
                 }
             }
         `;
