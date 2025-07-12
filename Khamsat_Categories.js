@@ -41,10 +41,10 @@
             color: '#28a745'
         },
         تسويق: {
-            exact: ['تسويق', 'مسوق', 'marketing', 'اعلان', 'اعلانات', 'اعلانية', 'ممول', 'ممولة', 'حملة', 'حملات'],
-            high: ['فيسبوك', 'facebook', 'انستقرام', 'instagram', 'تيك توك', 'tiktok', 'سناب شات', 'snapchat', 'جوجل ادز', 'google ads'],
-            medium: ['سيو', 'seo', 'ادارة حسابات', 'سوشيال ميديا', 'social media', 'ترويج', 'نشر', 'تفاعل', 'متابعين'],
-            low: ['براند', 'brand', 'مبيعات', 'sales', 'استراتيجية', 'strategy', 'تحليل', 'analytics', 'محتوى تسويقي'],
+            exact: ['تسويق', 'مسوق', 'marketing', 'اعلان', 'اعلانات', 'اعلانية', 'ممول', 'ممولة', 'حملة', 'حملات', 'ادسنس', 'adsense'],
+            high: ['فيسبوك', 'facebook', 'انستقرام', 'instagram', 'تيك توك', 'tiktok', 'سناب شات', 'snapchat', 'جوجل ادز', 'google ads', 'تحسين محركات'],
+            medium: ['سيو', 'seo', 'ادارة حسابات', 'سوشيال ميديا', 'social media', 'ترويج', 'نشر', 'تفاعل', 'متابعين', 'زيادة تفاعل'],
+            low: ['براند', 'brand', 'مبيعات', 'sales', 'استراتيجية', 'strategy', 'تحليل', 'analytics', 'محتوى تسويقي', 'ظهور في جوجل'],
             icon: 'fa-bullhorn',
             color: '#ffc107'
         },
@@ -57,10 +57,10 @@
             color: '#6610f2'
         },
         فيديو: {
-            exact: ['فيديو', 'فيديوهات', 'مونتاج', 'مونتير', 'تحرير فيديو', 'video editing', 'انيميشن', 'animation'],
-            high: ['موشن جرافيك', 'motion graphics', 'موشن', 'انترو', 'intro', 'ريلز', 'reels', 'شورت', 'shorts'],
-            medium: ['اخراج', 'تصوير', 'سينمائي', 'مقطع', 'كليب', 'clip', 'تعديل', 'edit', '3d animation'],
-            low: ['يوتيوب', 'youtube', 'تيكتوك', 'اعلان مصور', 'برومو', 'promo', 'تشويقي', 'trailer'],
+            exact: ['فيديو', 'فيديوهات', 'مونتاج', 'مونتير', 'تحرير فيديو', 'video editing', 'انيميشن', 'animation', 'video editor'],
+            high: ['موشن جرافيك', 'motion graphics', 'موشن', 'انترو', 'intro', 'ريلز', 'reels', 'شورت', 'shorts', 'مونتير محترف'],
+            medium: ['اخراج', 'تصوير', 'سينمائي', 'مقطع', 'كليب', 'clip', 'تعديل', 'edit', '3d animation', 'تحرير'],
+            low: ['يوتيوب', 'youtube', 'تيكتوك', 'اعلان مصور', 'برومو', 'promo', 'تشويقي', 'trailer', 'مقاطع'],
             icon: 'fa-video',
             color: '#dc3545'
         },
@@ -73,10 +73,10 @@
             color: '#FF80AB'
         },
         بيانات: {
-            exact: ['بيانات', 'ادخال بيانات', 'data entry', 'اكسل', 'excel', 'جدول', 'spreadsheet'],
-            high: ['تنظيف بيانات', 'تحليل بيانات', 'data analysis', 'جمع بيانات', 'data collection', 'scraping'],
-            medium: ['pdf', 'csv', 'جوجل شيت', 'google sheets', 'pivot', 'vba', 'قاعدة بيانات', 'database'],
-            low: ['تنسيق', 'formatting', 'دمج', 'merge', 'تصدير', 'export', 'استخراج', 'extraction'],
+            exact: ['بيانات', 'ادخال بيانات', 'data entry', 'اكسل', 'excel', 'جدول', 'spreadsheet', 'تحويل ملف', 'pdf to word'],
+            high: ['تنظيف بيانات', 'تحليل بيانات', 'data analysis', 'جمع بيانات', 'data collection', 'scraping', 'تحويل', 'استخراج'],
+            medium: ['pdf', 'csv', 'جوجل شيت', 'google sheets', 'pivot', 'vba', 'قاعدة بيانات', 'database', 'تنسيق ملفات'],
+            low: ['تنسيق', 'formatting', 'دمج', 'merge', 'تصدير', 'export', 'معالجة ملفات', 'تحويل صور'],
             icon: 'fa-database',
             color: '#FF6347'
         },
@@ -105,18 +105,18 @@
             color: '#fd7e14'
         },
         تعليم: {
-            exact: ['تعليم', 'تدريب', 'training', 'مدرس', 'teacher', 'معلم', 'instructor', 'دروس', 'lessons'],
-            high: ['كورس', 'course', 'دورة', 'دورات', 'شرح', 'explanation', 'تدريس', 'teaching'],
-            medium: ['واجب', 'واجبات', 'homework', 'منصة تعليمية', 'اختبار', 'test', 'امتحان', 'exam'],
-            low: ['قرآن', 'quran', 'آيلتس', 'ielts', 'انجليزي', 'english', 'خصوصي', 'private'],
+            exact: ['تعليم', 'تدريب', 'training', 'مدرس', 'teacher', 'معلم', 'instructor', 'دروس', 'lessons', 'اختبار القدرات'],
+            high: ['كورس', 'course', 'دورة', 'دورات', 'شرح', 'explanation', 'تدريس', 'teaching', 'تأسيس طالب', 'دروس خصوصية'],
+            medium: ['واجب', 'واجبات', 'homework', 'منصة تعليمية', 'اختبار', 'test', 'امتحان', 'exam', 'اكاديمي', 'لغة انجليزية'],
+            low: ['قرآن', 'quran', 'آيلتس', 'ielts', 'انجليزي', 'english', 'خصوصي', 'private', 'تعليمي', 'شروحات'],
             icon: 'fa-chalkboard-teacher',
             color: '#FA8072'
         },
         أعمال: {
-            exact: ['اعمال', 'business', 'ادارة', 'management', 'محاسبة', 'accounting', 'مالية', 'financial'],
-            high: ['موارد بشرية', 'hr', 'وظائف', 'jobs', 'توظيف', 'recruitment', 'موظف', 'employee'],
-            medium: ['مشروع', 'project', 'تمويل', 'funding', 'مبيعات', 'sales', 'تجارة', 'commerce'],
-            low: ['تسعير', 'pricing', 'crm', 'إدارة مشاريع', 'عقود', 'contracts'],
+            exact: ['اعمال', 'business', 'ادارة', 'management', 'محاسبة', 'accounting', 'مالية', 'financial', 'محاسب'],
+            high: ['موارد بشرية', 'hr', 'وظائف', 'jobs', 'توظيف', 'recruitment', 'موظف', 'employee', 'ادارة مالية', 'تقارير مالية'],
+            medium: ['مشروع', 'project', 'تمويل', 'funding', 'مبيعات', 'sales', 'تجارة', 'commerce', 'حسابات', 'مدير مالي'],
+            low: ['تسعير', 'pricing', 'crm', 'إدارة مشاريع', 'عقود', 'contracts', 'حساب الأداء', 'أداء مالي'],
             icon: 'fa-briefcase',
             color: '#20c997'
         },
@@ -206,11 +206,45 @@
             scores['برمجة'] += 3;
         }
         
+        // Enhanced rules for better classification
+        
+        // Fix "تصميم موقع" issue - should be برمجة not تصميم
+        if ((normalizedText.includes('تصميم موقع') || normalizedText.includes('تصميم تطبيق')) && 
+            !normalizedText.includes('شعار') && !normalizedText.includes('لوجو')) {
+            scores['برمجة'] += 15;
+            scores['تصميم'] = Math.max(0, scores['تصميم'] - 8);
+        }
+        
+        // Handle موشن جرافيك properly
+        if (normalizedText.includes('موشن جرافيك') || normalizedText.includes('motion')) {
+            scores['فيديو'] += 12;
+            scores['تصميم'] += 5;
+        }
+        
+        if (normalizedText.includes('ui') || normalizedText.includes('ux')) {
+            scores['تصميم'] += 12;
+            scores['برمجة'] += 3;
+        }
+        
         // Technical issues and setup should be خدمات تقنية not خدمات رقمية
         if (normalizedText.includes('مشكل') || normalizedText.includes('مشكلة') || 
             normalizedText.includes('اعداد') || normalizedText.includes('تثبيت')) {
             scores['خدمات تقنية'] += 8;
             scores['خدمات رقمية'] = Math.max(0, scores['خدمات رقمية'] - 5);
+        }
+        
+        // File conversion should be بيانات
+        if ((normalizedText.includes('تحويل') && (normalizedText.includes('ملف') || 
+            normalizedText.includes('pdf') || normalizedText.includes('word'))) ||
+            normalizedText.includes('pdf to word') || normalizedText.includes('تحويل صور')) {
+            scores['بيانات'] += 12;
+            scores['أخرى'] = 0; // Remove from أخرى
+        }
+        
+        // Logo editing should be تصميم
+        if (normalizedText.includes('تعديل') && (normalizedText.includes('لوجو') || 
+            normalizedText.includes('شعار') || normalizedText.includes('logo'))) {
+            scores['تصميم'] += 10;
         }
         
         // Boost specific categories for common terms
@@ -220,6 +254,19 @@
         
         if (normalizedText.includes('اعلان') && normalizedText.includes('ممول')) {
             scores['تسويق'] += 12;
+        }
+        
+        // AdSense and SEO should be تسويق
+        if (normalizedText.includes('ادسنس') || normalizedText.includes('adsense') ||
+            (normalizedText.includes('تحسين') && normalizedText.includes('محركات')) ||
+            normalizedText.includes('تفاعل')) {
+            scores['تسويق'] += 10;
+        }
+        
+        // Accounting should be أعمال
+        if (normalizedText.includes('محاسب') || normalizedText.includes('محاسبة') ||
+            normalizedText.includes('حسابات') || normalizedText.includes('مالي')) {
+            scores['أعمال'] += 10;
         }
         
         // Data analysis should be بيانات not استشارات
