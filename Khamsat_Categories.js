@@ -22,7 +22,7 @@
         };
     };
 
-    // Highly enhanced categories based on actual data analysis
+    // Enhanced categories with new additions based on data analysis
     const categories = {
         تصميم: {
             exact: ['تصميم', 'مصمم', 'مصممه', 'مصممة', 'ديزاينر', 'جرافيك', 'شعار', 'لوغو', 'لوجو', 'هوية بصرية', 'ui', 'ux'],
@@ -80,20 +80,28 @@
             icon: 'fa-database',
             color: '#FF6347'
         },
-        هندسة: {
-            exact: ['هندسة', 'مهندس', 'معمار', 'معماري', 'اوتوكاد', 'autocad', 'مخطط'],
-            high: ['تصميم داخلي', 'ديكور', 'interior design', 'ريفيت', 'revit', 'sketchup', 'سكتش اب'],
-            medium: ['3ds max', 'رسم هندسي', 'technical drawing', 'مدني', 'civil', 'خريطة', 'map'],
-            low: ['مشروع هندسي', 'بناء', 'construction', 'تخطيط', 'planning', 'مساحة', 'surveying'],
-            icon: 'fa-building',
-            color: '#8e44ad'
+        'خدمات رقمية': {
+            exact: ['خدمة عملاء', 'دعم فني', 'مساعد افتراضي', 'مساعد شخصي', 'سكرتير', 'سكرتيرة'],
+            high: ['ادارة حسابات', 'نشر اعلانات', 'رد على العملاء', 'خدمات عملاء', 'support', 'مندوب'],
+            medium: ['تشغيل', 'ادارة صفحات', 'متابعة', 'رد', 'اجابة', 'استقبال', 'تواصل'],
+            low: ['عن بعد', 'remote', 'اونلاين', 'online', 'افتراضي', 'virtual', 'ديجيتال'],
+            icon: 'fa-headset',
+            color: '#6f42c1'
         },
-        أعمال: {
-            exact: ['اعمال', 'business', 'ادارة', 'management', 'محاسبة', 'accounting', 'مالية', 'financial'],
-            high: ['دراسة جدوى', 'خطة عمل', 'business plan', 'استشارة', 'consulting', 'موارد بشرية', 'hr'],
-            medium: ['مشروع', 'project', 'موظف', 'employee', 'سكرتير', 'secretary', 'تمويل', 'funding'],
-            low: ['وظائف', 'jobs', 'مندوب', 'sales rep', 'تسعير', 'pricing', 'crm', 'إدارة مشاريع'],
-            icon: 'fa-briefcase',
+        استشارات: {
+            exact: ['استشارة', 'استشاري', 'مستشار', 'consulting', 'مشورة', 'نصيحة'],
+            high: ['قانونية', 'قانوني', 'محامي', 'legal', 'مالية', 'مال', 'تجارية', 'نفسية'],
+            medium: ['دراسة جدوى', 'خطة عمل', 'business plan', 'تحليل', 'تقييم', 'مراجعة'],
+            low: ['شخصية', 'حياتية', 'مهنية', 'تطوير الذات', 'ارشاد', 'توجيه'],
+            icon: 'fa-user-tie',
+            color: '#e83e8c'
+        },
+        'خدمات تقنية': {
+            exact: ['صيانة', 'اصلاح', 'حل مشكلة', 'مشاكل تقنية', 'دعم تقني', 'تقني'],
+            high: ['رفع تطبيق', 'نشر تطبيق', 'اعداد', 'تثبيت', 'install', 'setup', 'تكوين'],
+            medium: ['سيرفر', 'server', 'استضافة', 'hosting', 'امان', 'security', 'backup'],
+            low: ['فحص', 'اختبار', 'test', 'debug', 'troubleshooting', 'maintenance'],
+            icon: 'fa-tools',
             color: '#fd7e14'
         },
         تعليم: {
@@ -104,13 +112,13 @@
             icon: 'fa-chalkboard-teacher',
             color: '#FA8072'
         },
-        'أسلوب حياة': {
-            exact: ['حياة', 'lifestyle', 'لياقة', 'fitness', 'ارشاد', 'guidance', 'استشارة نفسية', 'صحة'],
-            high: ['طبخ', 'cooking', 'وصفات', 'recipes', 'تخسيس', 'diet', 'رشاقة', 'جمال', 'beauty'],
-            medium: ['هواية', 'hobby', 'ترفيه', 'entertainment', 'موضة', 'fashion', 'عناية', 'care'],
-            low: ['شخصي', 'personal', 'نصائح', 'tips', 'تطوير الذات', 'self development', 'نفسية', 'psychology'],
-            icon: 'fa-heart',
-            color: '#20B2AA'
+        أعمال: {
+            exact: ['اعمال', 'business', 'ادارة', 'management', 'محاسبة', 'accounting', 'مالية', 'financial'],
+            high: ['موارد بشرية', 'hr', 'وظائف', 'jobs', 'توظيف', 'recruitment', 'موظف', 'employee'],
+            medium: ['مشروع', 'project', 'تمويل', 'funding', 'مبيعات', 'sales', 'تجارة', 'commerce'],
+            low: ['تسعير', 'pricing', 'crm', 'إدارة مشاريع', 'عقود', 'contracts'],
+            icon: 'fa-briefcase',
+            color: '#20c997'
         },
         أخرى: {
             exact: [],
